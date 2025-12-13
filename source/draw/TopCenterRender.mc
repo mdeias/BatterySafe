@@ -1,5 +1,4 @@
 using Toybox.Graphics;
-using Toybox.System;
 using State;
 using FontManager;
 
@@ -10,18 +9,79 @@ class TopCenterRenderer {
     var _fontMid;
     var _fontPip;
 
+    const DASH_TEXT = "--------------";
+    const PIPE_TEXT = "|";
+
+    // Cached geometry
+    var _w;
+    var _cx;
+
+    var _clearY;
+    var _clearH;
+
+    var _timeY;
+    var _timeX;
+
+    var _touchY;
+    var _dashY;
+    var _bbY;
+
+    var _leftX;
+
+    var _pipeX;
+    var _pipeY;
+
     function initialize() {
         _fontTime = null;
         _fontTop  = null;
         _fontMid  = null;
         _fontPip  = null;
+
+        _w = 0;
+        _cx = 0;
+
+        _clearY = 0;
+        _clearH = 0;
+
+        _timeY = 0;
+        _timeX = 0;
+
+        _touchY = 0;
+        _dashY  = 0;
+        _bbY    = 0;
+
+        _leftX = 0;
+
+        _pipeX = 0;
+        _pipeY = 0;
     }
 
     function layout(dc as Graphics.Dc, s) {
+
         _fontTime = FontManager.robotoBold(140.0 * s);
         _fontTop  = FontManager.robotoBold(26.0  * s);
         _fontMid  = FontManager.robotoBold(30.0  * s);
-        _fontPip  = FontManager.robotoBold(110.0  * s);
+        _fontPip  = FontManager.robotoBold(110.0 * s);
+
+        _w  = dc.getWidth();
+        _cx = _w / 2.0;
+
+        // area pulizia (la tua 120..240)
+        _clearY = 120.0 * s;
+        _clearH = 95.0 * s;
+
+        // base positions (identiche al tuo)
+        _timeY = 100.0 * s;
+        _timeX = _cx + 50.0 * s;
+
+        _leftX  = _cx + 62.0 * s;
+
+        _touchY = _timeY + 31.0 * s;
+        _dashY  = _timeY + 56.0 * s;
+        _bbY    = _timeY + 78.0 * s;
+
+        _pipeX = _w - 30.0 * s;
+        _pipeY = _timeY + 18.0 * s;
     }
 
     function draw(dc as Graphics.Dc, state as State, s) {
@@ -30,87 +90,69 @@ class TopCenterRenderer {
             layout(dc, s);
         }
 
-        var w  = dc.getWidth();
-        var cx = w / 2.0;
+        // -----------------------------------------
+        // PARTIAL REDRAW: pulisci SOLO area TopCenter
+        // -----------------------------------------
+        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
+        dc.fillRectangle(0, _clearY, _w, _clearH);
+
+        // Stringhe da cache (in State le metti già non-null, ma safe comunque)
+        var timeStr = state.timeStr;
+        if (timeStr == null) { timeStr = "--:--"; }
+
+        var touchText = state.touchStr;
+        if (touchText == null) { touchText = "Touch: --"; }
+
+        var bbText = state.bodyBatteryStr;
+        if (bbText == null) { bbText = "BB: --"; }
+
+        // Tutto verde (ora + touch + dash + bb)
+        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
 
         // ORA
-        var nowClock = System.getClockTime();
-        var hour     = nowClock.hour;
-        var minute   = nowClock.min;
-
-        var timeStr = hour.format("%02d") + ":" + minute.format("%02d");
-
-        // ORA (posizionamento come il tuo)
-        var timeY = 110.0 * s;
-
-        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
         dc.drawText(
-            cx + 50.0 * s,
-            timeY,
+            _timeX,
+            _timeY,
             _fontTime,
             timeStr,
             Graphics.TEXT_JUSTIFY_RIGHT
         );
 
-        // TOUCH (a destra)
-        var touchLabelY = timeY + 31.0 * s;
-
-        var touchText;
-        if (!state.hasRealIsTouchScreen || state.isTouchScreen == null) {
-            touchText = "Touch: --";
-        } else {
-            touchText = state.isTouchScreen ? "Touch: ✓" : "Touch: x";
-        }
-
-        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+        // TOUCH
         dc.drawText(
-            cx + 62.0 * s,
-            touchLabelY,
+            _leftX,
+            _touchY,
             _fontMid,
             touchText,
             Graphics.TEXT_JUSTIFY_LEFT
         );
 
-        // LINEA "TRATTEGGIATA" come TEXT (ottimizzata)
-        // (tieni le tue coordinate, puoi rifinire poi)
-        var dashText = "--------------";
-        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+        // DASH
         dc.drawText(
-            cx + 62.0 * s,
-            (110.0 * s) + 56.0 * s,   // equivale al tuo dashY + 40*s senza variabili inutili
+            _leftX,
+            _dashY,
             _fontMid,
-            dashText,
+            DASH_TEXT,
             Graphics.TEXT_JUSTIFY_LEFT
         );
 
-        // BB (al posto della data)
-        var bbY = timeY + 78.0 * s;
-
-        var bbText;
-        if (state.hasRealBodyBattery && state.bodyBattery != null) {
-            bbText = "BodyB: " + state.bodyBattery.format("%d");
-        } else {
-            bbText = "BodyB: --";
-        }
-
-        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+        // BB
         dc.drawText(
-            cx + 62.0 * s,
-            bbY,
+            _leftX,
+            _bbY,
             _fontMid,
             bbText,
             Graphics.TEXT_JUSTIFY_LEFT
         );
 
+        // PIPE arancione
         dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
-        var pipeY = timeY + 18.0 * s;
         dc.drawText(
-            w - 30.0 * s,
-            pipeY ,
+            _pipeX,
+            _pipeY,
             _fontPip,
-            "|",
+            PIPE_TEXT,
             Graphics.TEXT_JUSTIFY_LEFT
         );
-
     }
 }

@@ -6,8 +6,8 @@ using Metrics;
 class DataManager {
 
     const STEPS_REFRESH_MS = 5 * 60 * 1000;  // 5 min
-    const BB_REFRESH_MS    = 3 * 60 * 1000;  // 3 min
-    const BAT_REFRESH_MS   = 10 * 60 * 1000; // 10 min
+    const BB_REFRESH_MS = 30 * 60 * 1000;
+    const BAT_REFRESH_MS   = 15 * 60 * 1000; // 15 min
 
     var _state as State;
 
@@ -84,91 +84,61 @@ class DataManager {
         try {
             var settings = System.getDeviceSettings();
             if (settings != null && (settings has :isTouchScreen)) {
-
-                var old = _state.isTouchScreen;
-
-                _state.isTouchScreen        = settings.isTouchScreen;
+            
+                _state.isTouchScreen = settings.isTouchScreen;
                 _state.hasRealIsTouchScreen = true;
-
-                // string cache (✓ / ×)
-                _state.touchStr = _state.isTouchScreen ? "Touch: ✓" : "Touch: ×";
-
-                // se cambia (di solito no) sporca Top
-                if (old == null || old != _state.isTouchScreen) {
+    
+                var newStr = _state.isTouchScreen ? "Touch: ✓" : "Touch: ×";
+                if (_state.touchStr != newStr) {
+                    _state.touchStr = newStr;
                     _state.dirtyTop = true;
                 }
             }
         } catch (e) {
-            // fallback se non disponibile
-            if (!_state.hasRealIsTouchScreen) {
-                _state.touchStr = "Touch: --";
-            }
+            // se non disponibile, lascia il default dello State
         }
     }
+
 
     // ----------------------------
     // DEVICE BATTERY
     // ----------------------------
     function updateDeviceBattery() {
-
-        var old = _state.devBattery;
         var v = Metrics.getDeviceBatteryPercent();
+        if (v == null) { return; }
 
-        if (v == null) {
-            // manteniamo l'ultimo valido
-            return;
-        }
-
-        _state.devBattery        = v;
+        _state.devBattery = v;
         _state.hasRealDevBattery = true;
 
         var newStr = v.format("%d") + "%";
         if (_state.devBatteryStr != newStr) {
             _state.devBatteryStr = newStr;
             _state.dirtyFooter = true;
-        } else {
-            // anche se il numero è uguale, niente redraw
-        }
-
-        // se vuoi essere super-safe: se cambia valore numerico, sporca footer
-        if (old == null || old != v) {
-            _state.dirtyFooter = true;
         }
     }
+
 
     // ----------------------------
     // STEPS
     // ----------------------------
     function updateSteps() {
-
         var data = Metrics.getStepsAndGoal();
-        if (data == null) {
-            return;
-        }
+        if (data == null) { return; }
 
         var steps = data[:steps];
         var goal  = data[:goal];
-
-        if (steps == null || goal == null || goal <= 0) {
-            return;
-        }
-
-        var oldSteps = _state.steps;
-        var oldPct   = _state.stepsPercent;
+        if (steps == null || goal == null || goal <= 0) { return; }
 
         var pct = (steps * 100) / goal;
 
-        _state.steps        = steps;
-        _state.stepGoal     = goal;
+        _state.steps = steps;
+        _state.stepGoal = goal;
         _state.stepsPercent = pct;
         _state.hasRealSteps = true;
 
-        // string cache unica per Header: "ST: 1234 -> 56%"
         var newStr = "ST: " + steps.format("%d") + " -> " + pct.format("%d") + "%";
         if (_state.stepsLineStr != newStr) {
             _state.stepsLineStr = newStr;
-            _state.dirtyHeader = true;
-        } else if (oldSteps == null || oldSteps != steps || oldPct == null || oldPct != pct) {
             _state.dirtyHeader = true;
         }
     }
@@ -177,23 +147,17 @@ class DataManager {
     // BODY BATTERY
     // ----------------------------
     function updateBodyBattery() {
-
-        var old = _state.bodyBattery;
         var bb = Metrics.getBodyBattery();
+        if (bb == null) { return; }
 
-        if (bb == null) {
-            return;
-        }
-
-        _state.bodyBattery        = bb;
+        _state.bodyBattery = bb;
         _state.hasRealBodyBattery = true;
 
         var newStr = "BB: " + bb.format("%d");
         if (_state.bodyBatteryStr != newStr) {
             _state.bodyBatteryStr = newStr;
-            _state.dirtyTop = true; // BB è in TopCenter
-        } else if (old == null || old != bb) {
             _state.dirtyTop = true;
         }
     }
+
 }

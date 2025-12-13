@@ -5,19 +5,74 @@ using FontManager;
 class FooterRenderer {
 
     var _fontMid;
-    var _fontDash;     // font più piccolo per la riga "---"
-    var _fontPipe;     // font grande per "|"
+    var _fontDash;
+    var _fontPipe;
+
+    const DASH_TEXT = "--------------------";
+    const BATT_LABEL = "Batt";
+    const PIPE_TEXT = "|";
+
+    // Cached geometry
+    var _w;
+    var _cx;
+
+    var _clearY;
+    var _clearH;
+
+    var _dashY;
+    var _dashTextY;
+
+    var _battY;
+    var _battLX;
+    var _battRX;
+
+    var _pipeY;
 
     function initialize() {
         _fontMid  = null;
         _fontDash = null;
         _fontPipe = null;
+
+        _w = 0;
+        _cx = 0;
+
+        _clearY = 0;
+        _clearH = 0;
+
+        _dashY = 0;
+        _dashTextY = 0;
+
+        _battY = 0;
+        _battLX = 0;
+        _battRX = 0;
+
+        _pipeY = 0;
     }
 
     function layout(dc as Graphics.Dc, s) {
+
         _fontMid  = FontManager.robotoBold(34.0 * s);
-        _fontDash = FontManager.robotoBold(42.0 * s);   // regola a gusto
-        _fontPipe = FontManager.robotoBold(40.0 * s);   // grande per "|"
+        _fontDash = FontManager.robotoBold(42.0 * s);
+        _fontPipe = FontManager.robotoBold(40.0 * s);
+
+        _w  = dc.getWidth();
+        _cx = _w / 2.0;
+
+        // area pulizia footer (la tua)
+        _clearY = 310.0 * s;
+        _clearH = 80.0 * s;
+
+        // dash
+        _dashY     = 292.0 * s;
+        _dashTextY = _dashY + 14.0 * s;
+
+        // battery row
+        _battY  = _dashY + 42.0 * s;
+        _battLX = _cx - 8.0 * s;
+        _battRX = _cx + 8.0 * s;
+
+        // pipe
+        _pipeY = _battY - 4.0 * s;
     }
 
     function draw(dc as Graphics.Dc, state as State, s) {
@@ -26,73 +81,54 @@ class FooterRenderer {
             layout(dc, s);
         }
 
-        var w  = dc.getWidth();
-        var cx = w / 2.0;
+        // -----------------------------------------
+        // PARTIAL REDRAW: pulisci SOLO area Footer
+        // -----------------------------------------
+        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
+        dc.fillRectangle(0, _clearY, _w, _clearH);
 
+        // Dash + battery in verde
         dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
 
-        // -------------------------------------------------
-        //  DASH LINE come TEXT
-        // -------------------------------------------------
-        var dashY = 292.0 * s;
-
-        // scegli tu il pattern (più lungo = più “pieno”)
-        var dashText = "--------------------";
-
-        // Mettila centrata e con margini uguali (semplice)
+        // DASH LINE
         dc.drawText(
-            cx,
-            dashY + 14.0 * s,
+            _cx,
+            _dashTextY,
             _fontDash,
-            dashText,
+            DASH_TEXT,
             Graphics.TEXT_JUSTIFY_CENTER
         );
 
-        // -------------------------------------------------
-        //  BATTERIA
-        // -------------------------------------------------
-        var battY = dashY + 42.0 * s;
-
-        var battStr;
-        if (state.hasRealDevBattery && state.devBattery != null) {
-            battStr = state.devBattery.format("%d") + "%";
-        } else {
-            battStr = "--";
-        }
+        // BATTERIA (da cache)
+        var battStr = state.devBatteryStr;
+        if (battStr == null) { battStr = "--"; }
 
         // "Batt"
         dc.drawText(
-            cx - 8.0 * s,
-            battY,
+            _battLX,
+            _battY,
             _fontMid,
-            "Batt",
+            BATT_LABEL,
             Graphics.TEXT_JUSTIFY_RIGHT
         );
 
         // valore
         dc.drawText(
-            cx + 8.0 * s,
-            battY,
+            _battRX,
+            _battY,
             _fontMid,
             battStr,
             Graphics.TEXT_JUSTIFY_LEFT
         );
 
-        // -------------------------------------------------
-        //  SEPARATORE CENTRALE: scegli una delle due opzioni
-        // -------------------------------------------------
-
-        // (A) PIPE come testo grande "|"
-        // Nota: posizionamento verticale: aggiusta +/-
+        // PIPE centrale in arancione
         dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
-        var pipeY = battY - 4.0 * s;
         dc.drawText(
-            cx,
-            pipeY,
+            _cx,
+            _pipeY,
             _fontPipe,
-            "|",
+            PIPE_TEXT,
             Graphics.TEXT_JUSTIFY_CENTER
         );
-
     }
 }
