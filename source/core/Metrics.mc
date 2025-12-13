@@ -2,6 +2,7 @@ using Toybox.System;
 using Toybox.ActivityMonitor;
 using Toybox.Battery;
 using Toybox.SensorHistory;
+using Log;
 
 module Metrics {
 
@@ -15,7 +16,7 @@ module Metrics {
                 return status.battery; // 0..100
             }
         } catch (e) {
-            // Log.e("getDeviceBatteryPercent: " + e);
+            Log.dbg("getDeviceBatteryPercent: " + e);
         }
         return null;
     }
@@ -30,7 +31,7 @@ module Metrics {
                 return settings.isTouchScreen; // 0..100
             }
         } catch (e) {
-            // Log.e("getPhoneBatteryPercent: " + e);
+             Log.dbg("getPhoneBatteryPercent: " + e);
         }
         return null;
     }
@@ -55,7 +56,7 @@ module Metrics {
             return { :steps => steps, :goal => goal };
 
         } catch (e) {
-            // Log.e("getStepsAndGoal: " + e);
+            Log.dbg("getStepsAndGoal: " + e);
             return { :steps => null, :goal => null };
         }
     }
@@ -88,7 +89,7 @@ module Metrics {
             return lastValid;
 
         } catch (e) {
-            // Log.e("getBodyBattery: " + e);
+            Log.dbg("getBodyBattery: " + e);
             return null;
         }
     }

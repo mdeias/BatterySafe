@@ -91,7 +91,6 @@ class HeaderRenderer {
 
         // steps line (cache)
         var text = state.stepsLineStr;
-        if (text == null) { text = STEPS_FALLBACK; }
 
         // verde: steps + markers
         dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);

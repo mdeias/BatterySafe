@@ -101,7 +101,6 @@ class FooterRenderer {
 
         // BATTERIA (da cache)
         var battStr = state.devBatteryStr;
-        if (battStr == null) { battStr = "--"; }
 
         // "Batt"
         dc.drawText(

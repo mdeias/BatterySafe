@@ -98,13 +98,10 @@ class TopCenterRenderer {
 
         // Stringhe da cache (in State le metti già non-null, ma safe comunque)
         var timeStr = state.timeStr;
-        if (timeStr == null) { timeStr = "--:--"; }
 
         var touchText = state.touchStr;
-        if (touchText == null) { touchText = "Touch: --"; }
 
         var bbText = state.bodyBatteryStr;
-        if (bbText == null) { bbText = "BB: --"; }
 
         // Tutto verde (ora + touch + dash + bb)
         dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
