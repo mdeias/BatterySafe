@@ -35,6 +35,11 @@ class MidCenterRenderer {
     var _structX;
     var _structY;
 
+    var _lastScale;
+
+    // NEW
+    var _staticDrawn;
+
     function initialize() {
         _fontMid   = null;
         _fontSmall = null;
@@ -61,6 +66,10 @@ class MidCenterRenderer {
         _dayLabelX = 0;
         _structX = 0;
         _structY = 0;
+
+        _lastScale = null;
+
+        _staticDrawn = false;
     }
 
     function layout(dc as Graphics.Dc, s) {
@@ -97,31 +106,81 @@ class MidCenterRenderer {
 
         _structY = _barsY + (_barH / 2.0) + 2.0 * s;
         _structX = _firstX - 42.0 * s;
+
+        // NEW: se cambia scale/layout, ridisegna static
+        _staticDrawn = false;
     }
 
-    function draw(dc as Graphics.Dc, state as State, s) {
+    // ----------------------------
+    // STATIC PART (una sola volta)
+    // ----------------------------
+    function drawStatic(dc as Graphics.Dc, s) {
 
-        // se lo scale cambia o fonts non pronti: layout
-        if (_fontMid == null) {
-            layout(dc, s);
-        }
-
-        // -----------------------------------------
-        // PARTIAL REDRAW: pulisci SOLO area MidCenter
-        // -----------------------------------------
+        // pulizia completa mid area UNA volta
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
         dc.fillRectangle(0, _clearY, _w, _clearH);
 
+        // ---- Barre verdi (sempre uguali) ----
+        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_GREEN);
+        for (var i = 0; i < 7; i += 1) {
+            var bx = _firstX + i * (_barW + _barSp);
+            dc.fillRectangle(bx, _barsY, _barW, _barH);
+        }
+
+        // "|_" (static)
+        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(
+            _structX,
+            _structY - 57.0 * s, // mantengo il tuo offset originale
+            _fontPip,
+            "|_",
+            Graphics.TEXT_JUSTIFY_LEFT
+        );
+
+        _staticDrawn = true;
+    }
+
+    // ----------------------------
+    // DRAW (static + dynamic)
+    // ----------------------------
+    function draw(dc as Graphics.Dc, state as State, s) {
+
+        if (_lastScale == null || _lastScale != s) {
+            layout(dc, s);
+            _lastScale = s;
+        }
+
+        // 1) static
+        if (!_staticDrawn) {
+            drawStatic(dc, s);
+        }
+
         // ---- Date + weekday da STATE ----
         var weekdayIndex = state.weekdayIndex;
-
-        // clamp 0..6 (sicurezza)
         if (weekdayIndex < 0) { weekdayIndex = 0; }
         if (weekdayIndex > 6) { weekdayIndex = 6; }
 
         var dateStr = state.dateStr;
 
-        // DATA centrata sopra le barre
+        // 2) dynamic: pulizia SOLO area data+cap+highlight label
+        // (non tocco le barre verdi base né le label bianche statiche)
+        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
+        dc.fillRectangle(
+            45 * s,
+            _dateY - (3.0 * s),
+            _w - 87.0 * s,
+            (50.0 * s)
+        );
+
+        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
+        dc.fillRectangle(
+            75 * s,
+            _dateY + (72.0 * s),
+            _w - 117.0 * s,
+            (20.0 * s)
+        );
+
+        // ridisegno data
         dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
         dc.drawText(
             _cx,
@@ -131,32 +190,10 @@ class MidCenterRenderer {
             Graphics.TEXT_JUSTIFY_CENTER
         );
 
-        // ---- Barre (tutte verdi) ----
-        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_GREEN);
-        for (var i = 0; i < 7; i += 1) {
-            var bx = _firstX + i * (_barW + _barSp);
-            dc.fillRectangle(bx, _barsY, _barW, _barH);
-        }
-
-        // ---- CAP arancione sopra il giorno corrente ----
-        var capX = _firstX + weekdayIndex * (_barW + _barSp);
-        var capY = _barsY - _capH - _capGap;
-
-        dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_ORANGE);
-        dc.fillRectangle(capX, capY, _barW, _capH);
-
-        // ---- Label giorni ----
-        // setColor bianco UNA volta, poi arancione solo per il giorno corrente
+        // ---- Label giorni bianche (base) ----
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-
         for (var j = 0; j < 7; j += 1) {
-
-            if (j == weekdayIndex) {
-                dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
-            }
-
             var tx = _firstX + j * (_barW + _barSp) + (_barW / 2.0);
-
             dc.drawText(
                 tx,
                 _daysY,
@@ -164,13 +201,28 @@ class MidCenterRenderer {
                 DAYS[j],
                 Graphics.TEXT_JUSTIFY_CENTER
             );
-
-            if (j == weekdayIndex) {
-                dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-            }
         }
 
-        // "Day" (a sinistra della data)
+        // CAP arancione sopra il giorno corrente
+        var capX = _firstX + weekdayIndex * (_barW + _barSp);
+        var capY = _barsY - _capH - _capGap;
+
+        dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_ORANGE);
+        dc.fillRectangle(capX, capY, _barW, _capH);
+
+        // label giorno corrente in arancione sopra quella bianca
+        var tx = capX + (_barW / 2.0);
+        dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(
+            tx,
+            _daysY,
+            _fontSmall,
+            DAYS[weekdayIndex],
+            Graphics.TEXT_JUSTIFY_CENTER
+        );
+
+
+        // "Day" (ridisegnato perché la clear dinamica lo copre)
         dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
         dc.drawText(
             _dayLabelX,
@@ -178,16 +230,6 @@ class MidCenterRenderer {
             _fontMid,
             "Day",
             Graphics.TEXT_JUSTIFY_RIGHT
-        );
-
-        // "|_" (struttura a sinistra barre)
-        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(
-            _structX,
-            _structY - 57.0 * s, // mantengo il tuo offset originale
-            _fontPip,
-            "|_",
-            Graphics.TEXT_JUSTIFY_LEFT
         );
     }
 }

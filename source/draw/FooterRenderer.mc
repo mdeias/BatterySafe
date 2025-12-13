@@ -27,6 +27,11 @@ class FooterRenderer {
     var _battRX;
 
     var _pipeY;
+    
+    var _lastScale;
+
+    var _staticDrawn;
+
 
     function initialize() {
         _fontMid  = null;
@@ -47,6 +52,10 @@ class FooterRenderer {
         _battRX = 0;
 
         _pipeY = 0;
+
+        _lastScale = null;
+
+        _staticDrawn = false;
     }
 
     function layout(dc as Graphics.Dc, s) {
@@ -73,61 +82,83 @@ class FooterRenderer {
 
         // pipe
         _pipeY = _battY - 4.0 * s;
+
+        _staticDrawn = false; 
+
     }
 
     function draw(dc as Graphics.Dc, state as State, s) {
 
-        if (_fontMid == null) {
+        if (_lastScale == null || _lastScale != s) {
             layout(dc, s);
+            _lastScale = s;
         }
-
+    
         // -----------------------------------------
-        // PARTIAL REDRAW: pulisci SOLO area Footer
+        // STATIC PART (disegnata UNA sola volta)
         // -----------------------------------------
+        if (!_staticDrawn) {
+        
+            // pulizia completa footer SOLO la prima volta
+            dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
+            dc.fillRectangle(0, _clearY, _w, _clearH);
+    
+            // DASH + LABEL
+            dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+    
+            // DASH LINE
+            dc.drawText(
+                _cx,
+                _dashTextY,
+                _fontDash,
+                DASH_TEXT,
+                Graphics.TEXT_JUSTIFY_CENTER
+            );
+    
+            // "Batt"
+            dc.drawText(
+                _battLX,
+                _battY,
+                _fontMid,
+                BATT_LABEL,
+                Graphics.TEXT_JUSTIFY_RIGHT
+            );
+    
+            // PIPE centrale
+            dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(
+                _cx,
+                _pipeY,
+                _fontPipe,
+                PIPE_TEXT,
+                Graphics.TEXT_JUSTIFY_CENTER
+            );
+    
+            _staticDrawn = true;
+        }
+    
+        // -----------------------------------------
+        // DYNAMIC PART (SOLO valore batteria)
+        // -----------------------------------------
+    
+        // pulizia MICRO solo dove cambia il numero
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
-        dc.fillRectangle(0, _clearY, _w, _clearH);
-
-        // Dash + battery in verde
+        dc.fillRectangle(
+            _cx + 8.0 * s,
+            _battY + (4.0 * s),
+            (_w - _cx),
+            (24.0 * s)
+        );
+    
+        // valore batteria
         dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
-
-        // DASH LINE
-        dc.drawText(
-            _cx,
-            _dashTextY,
-            _fontDash,
-            DASH_TEXT,
-            Graphics.TEXT_JUSTIFY_CENTER
-        );
-
-        // BATTERIA (da cache)
-        var battStr = state.devBatteryStr;
-
-        // "Batt"
-        dc.drawText(
-            _battLX,
-            _battY,
-            _fontMid,
-            BATT_LABEL,
-            Graphics.TEXT_JUSTIFY_RIGHT
-        );
-
-        // valore
         dc.drawText(
             _battRX,
             _battY,
             _fontMid,
-            battStr,
+            state.devBatteryStr,
             Graphics.TEXT_JUSTIFY_LEFT
         );
-
-        // PIPE centrale in arancione
-        dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(
-            _cx,
-            _pipeY,
-            _fontPipe,
-            PIPE_TEXT,
-            Graphics.TEXT_JUSTIFY_CENTER
-        );
     }
+
 }

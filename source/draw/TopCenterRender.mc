@@ -31,6 +31,11 @@ class TopCenterRenderer {
     var _pipeX;
     var _pipeY;
 
+    var _lastScale;
+
+    // NEW
+    var _staticDrawn;
+
     function initialize() {
         _fontTime = null;
         _fontTop  = null;
@@ -54,6 +59,10 @@ class TopCenterRenderer {
 
         _pipeX = 0;
         _pipeY = 0;
+
+        _lastScale = null;
+
+        _staticDrawn = false;
     }
 
     function layout(dc as Graphics.Dc, s) {
@@ -66,11 +75,10 @@ class TopCenterRenderer {
         _w  = dc.getWidth();
         _cx = _w / 2.0;
 
-        // area pulizia (la tua 120..240)
+        // area pulizia (la tua)
         _clearY = 120.0 * s;
         _clearH = 95.0 * s;
 
-        // base positions (identiche al tuo)
         _timeY = 100.0 * s;
         _timeX = _cx + 50.0 * s;
 
@@ -82,45 +90,86 @@ class TopCenterRenderer {
 
         _pipeX = _w - 30.0 * s;
         _pipeY = _timeY + 18.0 * s;
+
+        _staticDrawn = false;
     }
 
+    // ----------------------------
+    // STATIC PART (una sola volta)
+    // ----------------------------
+    function drawStatic(dc as Graphics.Dc, s) {
+
+        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
+        dc.fillRectangle(_leftX + 100 * s , _clearY, 30 * s, (90.0 * s));
+
+        // verde
+        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+
+        // PIPE
+        dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(
+            _pipeX,
+            _pipeY,
+            _fontPip,
+            PIPE_TEXT,
+            Graphics.TEXT_JUSTIFY_LEFT
+        );
+
+        _staticDrawn = true;
+    }
+
+    // ----------------------------
+    // DRAW
+    // ----------------------------
     function draw(dc as Graphics.Dc, state as State, s) {
 
-        if (_fontTime == null) {
+        if (_lastScale == null || _lastScale != s) {
             layout(dc, s);
+            _lastScale = s;
+        }
+
+        // 1) static
+        if (!_staticDrawn) {
+            drawStatic(dc, s);
         }
 
         // -----------------------------------------
-        // PARTIAL REDRAW: pulisci SOLO area TopCenter
+        // DYNAMIC: ORA
         // -----------------------------------------
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
-        dc.fillRectangle(0, _clearY, _w, _clearH);
+        dc.fillRectangle(
+            0,
+            _timeY + (20.0 * s),
+            _w - 35 * s,
+            (90.0 * s)
+        );
 
-        // Stringhe da cache (in State le metti già non-null, ma safe comunque)
-        var timeStr = state.timeStr;
-
-        var touchText = state.touchStr;
-
-        var bbText = state.bodyBatteryStr;
-
-        // Tutto verde (ora + touch + dash + bb)
         dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
-
-        // ORA
         dc.drawText(
             _timeX,
             _timeY,
             _fontTime,
-            timeStr,
+            state.timeStr,
             Graphics.TEXT_JUSTIFY_RIGHT
         );
+
+        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
 
         // TOUCH
         dc.drawText(
             _leftX,
             _touchY,
             _fontMid,
-            touchText,
+            state.touchStr,
+            Graphics.TEXT_JUSTIFY_LEFT
+        );
+
+        // BB
+        dc.drawText(
+            _leftX,
+            _bbY,
+            _fontMid,
+            state.bodyBatteryStr,
             Graphics.TEXT_JUSTIFY_LEFT
         );
 
@@ -130,25 +179,6 @@ class TopCenterRenderer {
             _dashY,
             _fontMid,
             DASH_TEXT,
-            Graphics.TEXT_JUSTIFY_LEFT
-        );
-
-        // BB
-        dc.drawText(
-            _leftX,
-            _bbY,
-            _fontMid,
-            bbText,
-            Graphics.TEXT_JUSTIFY_LEFT
-        );
-
-        // PIPE arancione
-        dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(
-            _pipeX,
-            _pipeY,
-            _fontPip,
-            PIPE_TEXT,
             Graphics.TEXT_JUSTIFY_LEFT
         );
     }

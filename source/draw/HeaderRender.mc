@@ -7,9 +7,9 @@ class HeaderRenderer {
     var _fontTop;
     var _fontTagline;
 
-    const TAGLINE      = "Battery Life Optimized";
-    const MARKER_LEFT  = "|--";
-    const MARKER_RIGHT = "--|";
+    const TAGLINE        = "Battery Life Optimized";
+    const MARKER_LEFT    = "|--";
+    const MARKER_RIGHT   = "--|";
     const STEPS_FALLBACK = "ST: -- -> --%";
 
     // Cached geometry
@@ -29,6 +29,11 @@ class HeaderRenderer {
     var _tri;
     var _triCy;
 
+    var _lastScale;
+
+    // NEW
+    var _staticDrawn;
+
     function initialize() {
         _fontTop     = null;
         _fontTagline = null;
@@ -47,6 +52,10 @@ class HeaderRenderer {
 
         _tri = 0;
         _triCy = 0;
+
+        _lastScale = null;
+
+        _staticDrawn = false;
     }
 
     function layout(dc as Graphics.Dc, s) {
@@ -72,38 +81,29 @@ class HeaderRenderer {
         // triangle
         _tri   = 10.0 * s;
         _triCy = 38.0 * s;
+
+        // NEW: se cambia scale/layout, ridisegna static
+        _staticDrawn = false;
     }
 
-    function draw(dc as Graphics.Dc, state as State, s) {
+    // NEW: utile quando in futuro cambi palette/settings
+    function resetStatic() {
+        _staticDrawn = false;
+    }
 
-        if (_fontTop == null) {
-            layout(dc, s);
-        }
+    // NEW: static part (una sola volta)
+    function drawStatic(dc as Graphics.Dc, s) {
 
-        // -----------------------------------------
-        // PARTIAL REDRAW: pulisci SOLO l'area header
-        // -----------------------------------------
+        // pulizia completa header UNA volta
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
         dc.fillRectangle(0, 0, _w, _clearH);
 
         // triangolo pieno
         drawTopMarker(dc);
 
-        // steps line (cache)
-        var text = state.stepsLineStr;
-
-        // verde: steps + markers
+        // markers verdi
         dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
 
-        dc.drawText(
-            _cx,
-            _topY,
-            _fontTop,
-            text,
-            Graphics.TEXT_JUSTIFY_CENTER
-        );
-
-        // markers
         dc.drawText(
             _markerLeftX,
             _markerY,
@@ -127,6 +127,44 @@ class HeaderRenderer {
             _taglineY,
             _fontTagline,
             TAGLINE,
+            Graphics.TEXT_JUSTIFY_CENTER
+        );
+
+        _staticDrawn = true;
+    }
+
+    function draw(dc as Graphics.Dc, state as State, s) {
+
+        if (_lastScale == null || _lastScale != s) {
+            layout(dc, s);
+            _lastScale = s;
+        }
+
+        // 1) static (solo una volta)
+        if (!_staticDrawn) {
+            drawStatic(dc, s);
+        }
+
+        // 2) dynamic: SOLO riga steps
+        // pulizia piccola sulla zona della riga steps (con padding conservativo)
+        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
+        dc.fillRectangle(
+            0,
+            _topY - (8.0 * s),
+            _w,
+            (35.0 * s)
+        );
+
+        // draw steps
+        var text = state.stepsLineStr;
+        if (text == null) { text = STEPS_FALLBACK; } // safe
+
+        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(
+            _cx,
+            _topY,
+            _fontTop,
+            text,
             Graphics.TEXT_JUSTIFY_CENTER
         );
     }

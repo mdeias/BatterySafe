@@ -14,14 +14,14 @@ class BatterySafeView extends WatchUi.WatchFace {
     function initialize() {
         WatchFace.initialize();
 
-        Log.e("BatterySafeView.initialize");
+        Log.dbg("BatterySafeView.initialize");
 
         _state = new State();
         _dataManager = new DataManager(_state);
     }
 
     function onLayout(dc as Dc) as Void {
-        Log.e("BatterySafeView.onLayout");
+        Log.dbg("BatterySafeView.onLayout");
         // no XML layout
     }
 
@@ -54,13 +54,12 @@ class BatterySafeView extends WatchUi.WatchFace {
             if (minuteKey != _state.lastMinuteKey) {
                 _state.lastMinuteKey = minuteKey;
                 _state.timeStr = ct.hour.format("%02d") + ":" + ct.min.format("%02d");
-
-                // l'ora è nel TopCenter
                 _state.dirtyTop = true;
             }
 
             // -----------------------------
-            // Full redraw (prima volta)
+            // FULL REDRAW
+            // (prima volta, o quando lo forziamo dopo sleep / ecc.)
             // -----------------------------
             if (_state.needsFullRedraw) {
 
@@ -78,7 +77,7 @@ class BatterySafeView extends WatchUi.WatchFace {
             }
 
             // -----------------------------
-            // Partial redraw (solo sezioni dirty)
+            // PARTIAL REDRAW (solo sezioni dirty)
             // -----------------------------
             if (_state.dirtyHeader) {
                 GraphicsManager.drawHeader(dc, _state);
@@ -99,16 +98,20 @@ class BatterySafeView extends WatchUi.WatchFace {
             _state.clearDirty();
 
         } catch (e) {
-            Log.e("BatterySafeView.onUpdate EXCEPTION=" + e);
+            Log.dbg("BatterySafeView.onUpdate EXCEPTION=" + e);
         }
     }
 
     function onShow() as Void {
-        Log.e("BatterySafeView.onShow");
+        Log.dbg("BatterySafeView.onShow");
+
+        // Per sicurezza: quando la view torna in foreground,
+        // ristampiamo tutto una volta.
+        _state.needsFullRedraw = true;
     }
 
     function onHide() as Void {
-        Log.e("BatterySafeView.onHide");
+        Log.dbg("BatterySafeView.onHide");
     }
 
     // Wake: refresh immediato dei dati "vivi"
@@ -129,9 +132,15 @@ class BatterySafeView extends WatchUi.WatchFace {
         // segna dirty: header (steps) + footer (battery)
         _state.dirtyHeader = true;
         _state.dirtyFooter = true;
+
+        // IMPORTANTISSIMO:
+        // dopo sleep / wake il framebuffer può non contenere più
+        // tutte le parti statiche "stampate".
+        // La soluzione più sicura (zero regressioni) è forzare 1 full redraw.
+        _state.needsFullRedraw = true;
     }
 
     function onEnterSleep() as Void {
-        Log.e("BatterySafeView.onEnterSleep");
+        Log.dbg("BatterySafeView.onEnterSleep");
     }
 }
