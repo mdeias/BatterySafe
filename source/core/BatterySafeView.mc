@@ -10,18 +10,26 @@ class BatterySafeView extends WatchUi.WatchFace {
 
     var _state;
     var _dataManager;
+    var _aodShiftX;
+    var _aodShiftY;
+    var _aodLastSlot;
+    var _isLowPower;
+    var _didDrawAod;
+
 
     function initialize() {
         WatchFace.initialize();
 
-        Log.dbg("BatterySafeView.initialize");
-
+        _isLowPower = false;
+        _didDrawAod = false;
+        _aodShiftX = 0;
+        _aodShiftY = 0;
+        _aodLastSlot = -1;
         _state = new State();
         _dataManager = new DataManager(_state);
     }
 
     function onLayout(dc as Dc) as Void {
-        Log.dbg("BatterySafeView.onLayout");
         // no XML layout
     }
 
@@ -33,8 +41,20 @@ class BatterySafeView extends WatchUi.WatchFace {
     function onUpdate(dc as Dc) as Void {
 
         try {
-            var nowMs = System.getTimer();
+            
+            if (_isLowPower) {
+                _didDrawAod = true;
+                var s = GraphicsManager.getScale(dc);
+                var nowMs = System.getTimer();
+                dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
+                dc.clear();
+                updateAodShift(nowMs, s);
+                GraphicsManager.drawAodTime(dc, _state, _aodShiftX, _aodShiftY);
+                GraphicsManager.drawAodDate(dc, _state, _aodShiftX, _aodShiftY);
+                return;
+            }
 
+            var nowMs = System.getTimer();
             // -----------------------------
             // Refresh dati (scheduler)
             // -----------------------------
@@ -114,33 +134,55 @@ class BatterySafeView extends WatchUi.WatchFace {
         Log.dbg("BatterySafeView.onHide");
     }
 
-    // Wake: refresh immediato dei dati "vivi"
+    function onEnterSleep() as Void {
+        _isLowPower = true;
+        WatchUi.WatchFace.onEnterSleep();
+    }
+
     function onExitSleep() as Void {
+        _isLowPower = false;
+        WatchUi.WatchFace.onExitSleep();
 
-        Log.e("BatterySafeView.onExitSleep");
-
-        if (_dataManager == null) {
-            return;
+        if (_didDrawAod) {
+            GraphicsManager.invalidateStatic();
+            _state.needsFullRedraw = true;
+            _didDrawAod = false;
         }
 
-        var nowMs = System.getTimer();
+        if (_dataManager != null) {
+            var nowMs = System.getTimer();
+            _dataManager.refreshStepsIfNeeded(nowMs, true);
+            _dataManager.refreshBatteryIfNeeded(nowMs, true);
+        }
 
-        // refresh immediato SOLO di ciò che ha senso
-        _dataManager.refreshStepsIfNeeded(nowMs, true);
-        _dataManager.refreshBatteryIfNeeded(nowMs, true);
-
-        // segna dirty: header (steps) + footer (battery)
         _state.dirtyHeader = true;
         _state.dirtyFooter = true;
-
-        // IMPORTANTISSIMO:
-        // dopo sleep / wake il framebuffer può non contenere più
-        // tutte le parti statiche "stampate".
-        // La soluzione più sicura (zero regressioni) è forzare 1 full redraw.
-        _state.needsFullRedraw = true;
     }
 
-    function onEnterSleep() as Void {
-        Log.dbg("BatterySafeView.onEnterSleep");
+    function onPartialUpdate(dc as Graphics.Dc) {
+
+        // AOD: sfondo nero SEMPRE (come Recovery) -> elimina residui
+        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
+        dc.clear();
     }
+
+    function updateAodShift(nowMs, s) {
+
+        // cambia ogni 10 minuti
+        var slot = (nowMs / 600000).toNumber();
+        if (slot == _aodLastSlot) { return; }
+
+        _aodLastSlot = slot;
+
+        var d = 2.0 * s; // ampiezza shift (max 2px * scale)
+        var m = slot % 4;
+
+        if (m == 0) { _aodShiftX = 0;  _aodShiftY = 0; }
+        if (m == 1) { _aodShiftX = d;  _aodShiftY = 0; }
+        if (m == 2) { _aodShiftX = 0;  _aodShiftY = d; }
+        if (m == 3) { _aodShiftX = d;  _aodShiftY = d; }
+    }
+
+
+
 }

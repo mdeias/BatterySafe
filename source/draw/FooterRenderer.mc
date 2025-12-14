@@ -87,6 +87,11 @@ class FooterRenderer {
 
     }
 
+    function invalidateStatic() {
+        _staticDrawn = false;
+    }
+
+
     function draw(dc as Graphics.Dc, state as State, s) {
 
         if (_lastScale == null || _lastScale != s) {
@@ -160,5 +165,7 @@ class FooterRenderer {
             Graphics.TEXT_JUSTIFY_LEFT
         );
     }
+
+
 
 }

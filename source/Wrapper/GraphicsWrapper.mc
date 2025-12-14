@@ -11,8 +11,6 @@ module GraphicsManager {
     var _footerRenderer;
 
     function init() {
-        // meglio istanziare solo se null,
-        // così non ricrei tutto ogni volta
         if (_headerRenderer == null) {
             _headerRenderer    = new HeaderRenderer();
             _midCenterRenderer = new MidCenterRenderer();
@@ -51,5 +49,25 @@ module GraphicsManager {
         var s = getScale(dc);
         _footerRenderer.draw(dc, state, s);
     }
+
+    function drawAodTime(dc as Graphics.Dc, state as State, shiftX, shiftY) {
+        if (_topCenterRenderer == null) { init(); }
+        var s = getScale(dc);
+        _topCenterRenderer.drawAodTime(dc, state, s, shiftX, shiftY);
+    }
+
+    function drawAodDate(dc as Graphics.Dc, state as State, shiftX, shiftY) {
+        if (_midCenterRenderer == null) { init(); }
+        var s = getScale(dc);
+        _midCenterRenderer.drawAodDate(dc, state, s, shiftX, shiftY);
+    }
+
+    function invalidateStatic() {
+        if (_headerRenderer != null && (_headerRenderer has :invalidateStatic)) { _headerRenderer.invalidateStatic(); }
+        if (_topCenterRenderer != null && (_topCenterRenderer has :invalidateStatic)) { _topCenterRenderer.invalidateStatic(); }
+        if (_midCenterRenderer != null && (_midCenterRenderer has :invalidateStatic)) { _midCenterRenderer.invalidateStatic(); }
+        if (_footerRenderer != null && (_footerRenderer has :invalidateStatic)) { _footerRenderer.invalidateStatic(); }
+    }
+
 
 }

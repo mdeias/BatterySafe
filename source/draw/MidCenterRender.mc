@@ -111,6 +111,10 @@ class MidCenterRenderer {
         _staticDrawn = false;
     }
 
+    function invalidateStatic() {
+        _staticDrawn = false;
+    }
+
     // ----------------------------
     // STATIC PART (una sola volta)
     // ----------------------------
@@ -230,6 +234,26 @@ class MidCenterRenderer {
             _fontMid,
             "Day",
             Graphics.TEXT_JUSTIFY_RIGHT
+        );
+    }
+
+    // ----------------------------
+    // AOD: SOLO DATA (stessa posizione e dimensione del normale)
+    // ----------------------------
+    function drawAodDate(dc as Graphics.Dc, state as State, s, shiftX, shiftY) {
+
+        if (_lastScale == null || _lastScale != s) {
+            layout(dc, s);
+            _lastScale = s;
+        }
+
+        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(
+            _cx + shiftX,
+            _dateY + shiftY,
+            _fontMid,
+            state.dateStr,
+            Graphics.TEXT_JUSTIFY_CENTER
         );
     }
 }

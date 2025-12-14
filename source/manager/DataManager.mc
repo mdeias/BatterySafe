@@ -84,11 +84,11 @@ class DataManager {
         try {
             var settings = System.getDeviceSettings();
             if (settings != null && (settings has :isTouchScreen)) {
-            
+
                 _state.isTouchScreen = settings.isTouchScreen;
                 _state.hasRealIsTouchScreen = true;
-    
-                var newStr = _state.isTouchScreen ? "Touch: ✓" : "Touch: ×";
+
+                var newStr = _state.isTouchScreen ? "Touch: Yes" : "Touch: No";
                 if (_state.touchStr != newStr) {
                     _state.touchStr = newStr;
                     _state.dirtyTop = true;
@@ -136,7 +136,7 @@ class DataManager {
         _state.stepsPercent = pct;
         _state.hasRealSteps = true;
 
-        var newStr = "ST: " + steps.format("%d") + " -> " + pct.format("%d") + "%";
+        var newStr = "Steps: " + steps.format("%d") + " -> " + pct.format("%d") + "%";
         if (_state.stepsLineStr != newStr) {
             _state.stepsLineStr = newStr;
             _state.dirtyHeader = true;
@@ -153,7 +153,7 @@ class DataManager {
         _state.bodyBattery = bb;
         _state.hasRealBodyBattery = true;
 
-        var newStr = "BB: " + bb.format("%d");
+        var newStr = "BodyB: " + bb.format("%d");
         if (_state.bodyBatteryStr != newStr) {
             _state.bodyBatteryStr = newStr;
             _state.dirtyTop = true;

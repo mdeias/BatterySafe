@@ -79,7 +79,7 @@ class HeaderRenderer {
         _markerRightX = _w - 30.0 * s;
 
         // triangle
-        _tri   = 10.0 * s;
+        _tri   = 11.0 * s;
         _triCy = 38.0 * s;
 
         // NEW: se cambia scale/layout, ridisegna static
@@ -87,7 +87,7 @@ class HeaderRenderer {
     }
 
     // NEW: utile quando in futuro cambi palette/settings
-    function resetStatic() {
+    function invalidateStatic() {
         _staticDrawn = false;
     }
 
@@ -178,4 +178,5 @@ class HeaderRenderer {
         dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
         dc.fillPolygon([ p1, p2, p3 ]);
     }
+
 }

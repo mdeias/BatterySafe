@@ -9,7 +9,7 @@ class State {
     const DATE_FALLBACK   = "--";
     const STEPS_FALLBACK  = "ST: -- -> --%";
     const BATT_FALLBACK   = "--";
-    const BB_FALLBACK     = "BB: --";
+    const BB_FALLBACK     = "BodyB: --";
     const TOUCH_FALLBACK  = "Touch: --";
 
     // ----------------------------

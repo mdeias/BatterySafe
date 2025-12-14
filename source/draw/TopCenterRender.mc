@@ -8,7 +8,6 @@ class TopCenterRenderer {
     var _fontTop;
     var _fontMid;
     var _fontPip;
-
     const DASH_TEXT = "--------------";
     const PIPE_TEXT = "|";
 
@@ -94,6 +93,10 @@ class TopCenterRenderer {
         _staticDrawn = false;
     }
 
+    function invalidateStatic() {
+        _staticDrawn = false;
+    }
+
     // ----------------------------
     // STATIC PART (una sola volta)
     // ----------------------------
@@ -101,9 +104,6 @@ class TopCenterRenderer {
 
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
         dc.fillRectangle(_leftX + 100 * s , _clearY, 30 * s, (90.0 * s));
-
-        // verde
-        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
 
         // PIPE
         dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
@@ -182,4 +182,28 @@ class TopCenterRenderer {
             Graphics.TEXT_JUSTIFY_LEFT
         );
     }
+
+    // ----------------------------
+    // AOD: SOLO ORA (stessa posizione e dimensione del normale)
+    // ----------------------------
+    function drawAodTime(dc as Graphics.Dc, state as State, s, shiftX, shiftY) {
+
+        // assicurati che layout sia pronto (usa lo stesso font/geo)
+        if (_lastScale == null || _lastScale != s) {
+            layout(dc, s);
+            _lastScale = s;
+        }
+
+        // ora
+        dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(
+            _timeX + shiftX,
+            _timeY + shiftY,
+            _fontTime,
+            state.timeStr,
+            Graphics.TEXT_JUSTIFY_RIGHT
+        );
+    }
+
+
 }
