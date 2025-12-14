@@ -8,7 +8,7 @@ class TopCenterRenderer {
     var _fontTop;
     var _fontMid;
     var _fontPip;
-    const DASH_TEXT = "--------------";
+    const DASH_TEXT = "-------------";
     const PIPE_TEXT = "|";
 
     // Cached geometry
@@ -68,7 +68,7 @@ class TopCenterRenderer {
 
         _fontTime = FontManager.robotoBold(140.0 * s);
         _fontTop  = FontManager.robotoBold(26.0  * s);
-        _fontMid  = FontManager.robotoBold(30.0  * s);
+        _fontMid  = FontManager.robotoBold(28.0  * s);
         _fontPip  = FontManager.robotoBold(110.0 * s);
 
         _w  = dc.getWidth();
@@ -79,11 +79,11 @@ class TopCenterRenderer {
         _clearH = 95.0 * s;
 
         _timeY = 100.0 * s;
-        _timeX = _cx + 50.0 * s;
+        _timeX = _cx + 60.0 * s;
 
         _leftX  = _cx + 62.0 * s;
 
-        _touchY = _timeY + 31.0 * s;
+        _touchY = _timeY + 32.0 * s;
         _dashY  = _timeY + 56.0 * s;
         _bbY    = _timeY + 78.0 * s;
 
@@ -155,7 +155,7 @@ class TopCenterRenderer {
 
         dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
 
-        // DEVICENAME
+        // TOUCH
         dc.drawText(
             _leftX,
             _touchY,
