@@ -155,7 +155,7 @@ class TopCenterRenderer {
 
         dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
 
-        // TOUCH
+        // DEVICENAME
         dc.drawText(
             _leftX,
             _touchY,

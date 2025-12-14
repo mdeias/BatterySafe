@@ -24,6 +24,7 @@ class DataManager {
     // chiamala ad ogni onUpdate (economica)
     function refreshFast() {
         refreshDateIfNeeded();
+        readTouchCapability();
     }
 
     function refreshStepsIfNeeded(nowMs, force) {
