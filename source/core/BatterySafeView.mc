@@ -3,6 +3,7 @@ import Toybox.Graphics;
 import Toybox.System;
 import Toybox.WatchUi;
 import Log;
+import Prefs;
 
 using GraphicsManager;
 
@@ -75,7 +76,18 @@ class BatterySafeView extends WatchUi.WatchFace {
 
             if (minuteKey != _state.lastMinuteKey) {
                 _state.lastMinuteKey = minuteKey;
-                _state.timeStr = ct.hour.format("%02d") + ":" + ct.min.format("%02d");
+
+                    var hh = ct.hour;
+
+                    if (!Prefs.use24h) {
+                        hh = hh % 12;
+                        if (hh == 0) { hh = 12; }
+                        // 12h senza AM/PM (come vuoi tu)
+                        _state.timeStr = hh.format("%02d") + ":" + ct.min.format("%02d");
+                    }
+                    
+                    _state.timeStr = hh.format("%02d") + ":" + ct.min.format("%02d");
+
                 _state.dirtyTop = true;
             }
 
@@ -190,15 +202,14 @@ class BatterySafeView extends WatchUi.WatchFace {
         if (_lastSettingsVersion == SettingsBus.version) { return; }
         _lastSettingsVersion = SettingsBus.version;
 
-        // ricarica palette
         Palette.load();
+        Prefs.load();
+        
+        _state.lastMinuteKey = -1;
 
-        // i tuoi renderer hanno _staticDrawn -> va resettato
         GraphicsManager.invalidateStatic();
 
-        // e ridisegno completo una volta
         _state.needsFullRedraw = true;
     }
-
 
 }
