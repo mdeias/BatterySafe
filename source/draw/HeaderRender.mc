@@ -10,7 +10,7 @@ class HeaderRenderer {
     const TAGLINE        = "Battery Life Optimized";
     const MARKER_LEFT    = "|--";
     const MARKER_RIGHT   = "--|";
-    const STEPS_FALLBACK = "ST: -- -> --%";
+    const STEPS_FALLBACK = "Steps: -- -> --%";
 
     // Cached geometry
     var _w;
