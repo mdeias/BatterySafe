@@ -5,8 +5,7 @@
     <property id="UseMilitaryFormat" type="boolean">false</property>
 
     <property id="primaryColor" type="number">0</property>
-    <property id="accentColor" type="number">0</property>
-    <property id="secondaryColor" type="number">0</property>
+    <property id="accentColor" type="number">3</property>
 
 
 </properties>

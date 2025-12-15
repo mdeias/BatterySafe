@@ -1,19 +1,19 @@
 <settings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
 
-        <setting propertyKey="primaryColor" title="Primary color">
+    <setting propertyKey="@Properties.primaryColor" title="Primary color">
         <settingConfig type="list">
                 <listEntry value="0">Green</listEntry>
-                <listEntry value="1">Cyan</listEntry>
+                <listEntry value="1">Blue</listEntry>
                 <listEntry value="2">Red</listEntry>
                 <listEntry value="3">Orange</listEntry>
                 <listEntry value="4">Yellow</listEntry>
         </settingConfig>
     </setting>
 
-    <setting propertyKey="accentColor" title="Accent color">
+    <setting propertyKey="@Properties.accentColor" title="Accent color">
         <settingConfig type="list">
                 <listEntry value="0">Green</listEntry>
-                <listEntry value="1">Cyan</listEntry>
+                <listEntry value="1">Blue</listEntry>
                 <listEntry value="2">Red</listEntry>
                 <listEntry value="3">Orange</listEntry>
                 <listEntry value="4">Yellow</listEntry>

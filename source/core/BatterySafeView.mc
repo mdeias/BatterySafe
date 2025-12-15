@@ -15,6 +15,7 @@ class BatterySafeView extends WatchUi.WatchFace {
     var _aodLastSlot;
     var _isLowPower;
     var _didDrawAod;
+    var _lastSettingsVersion;
 
 
     function initialize() {
@@ -25,8 +26,10 @@ class BatterySafeView extends WatchUi.WatchFace {
         _aodShiftX = 0;
         _aodShiftY = 0;
         _aodLastSlot = -1;
+        _lastSettingsVersion = -1;
         _state = new State();
         _dataManager = new DataManager(_state);
+        Palette.load();
     }
 
     function onLayout(dc as Dc) as Void {
@@ -41,7 +44,6 @@ class BatterySafeView extends WatchUi.WatchFace {
     function onUpdate(dc as Dc) as Void {
 
         try {
-            
             if (_isLowPower) {
                 _didDrawAod = true;
                 var s = GraphicsManager.getScale(dc);
@@ -53,7 +55,7 @@ class BatterySafeView extends WatchUi.WatchFace {
                 GraphicsManager.drawAodDate(dc, _state, _aodShiftX, _aodShiftY);
                 return;
             }
-
+            applySettingsIfNeeded();
             var nowMs = System.getTimer();
             // -----------------------------
             // Refresh dati (scheduler)
@@ -183,6 +185,20 @@ class BatterySafeView extends WatchUi.WatchFace {
         if (m == 3) { _aodShiftX = d;  _aodShiftY = d; }
     }
 
+    function applySettingsIfNeeded() {
+
+        if (_lastSettingsVersion == SettingsBus.version) { return; }
+        _lastSettingsVersion = SettingsBus.version;
+
+        // ricarica palette
+        Palette.load();
+
+        // i tuoi renderer hanno _staticDrawn -> va resettato
+        GraphicsManager.invalidateStatic();
+
+        // e ridisegno completo una volta
+        _state.needsFullRedraw = true;
+    }
 
 
 }
