@@ -195,8 +195,14 @@ class MidCenterRenderer {
         );
 
         // ---- Label giorni bianche (base) ----
+        // FIX: non disegnare in bianco il giorno corrente (evita overlay/fuzzy)
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
         for (var j = 0; j < 7; j += 1) {
+        
+            if (j == weekdayIndex) { 
+                continue; 
+            }
+        
             var tx = _firstX + j * (_barW + _barSp) + (_barW / 2.0);
             dc.drawText(
                 tx,
