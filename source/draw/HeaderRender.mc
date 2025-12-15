@@ -102,7 +102,7 @@ class HeaderRenderer {
         drawTopMarker(dc);
 
         // markers verdi
-        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(Palette.PRIMARY, Graphics.COLOR_TRANSPARENT);
 
         dc.drawText(
             _markerLeftX,
@@ -121,7 +121,7 @@ class HeaderRenderer {
         );
 
         // tagline arancione
-        dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(Palette.ACCENT, Graphics.COLOR_TRANSPARENT);
         dc.drawText(
             _cx,
             _taglineY,
@@ -159,7 +159,7 @@ class HeaderRenderer {
         var text = state.stepsLineStr;
         if (text == null) { text = STEPS_FALLBACK; } // safe
 
-        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(Palette.PRIMARY, Graphics.COLOR_TRANSPARENT);
         dc.drawText(
             _cx,
             _topY,
@@ -175,7 +175,7 @@ class HeaderRenderer {
         var p2 = [ _cx - _tri, _triCy - _tri ];
         var p3 = [ _cx + _tri, _triCy - _tri ];
 
-        dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(Palette.ACCENT, Graphics.COLOR_TRANSPARENT);
         dc.fillPolygon([ p1, p2, p3 ]);
     }
 

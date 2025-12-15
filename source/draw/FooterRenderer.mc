@@ -1,6 +1,7 @@
 using Toybox.Graphics;
 using State;
 using FontManager;
+using Palette;
 
 class FooterRenderer {
 
@@ -109,7 +110,7 @@ class FooterRenderer {
             dc.fillRectangle(0, _clearY, _w, _clearH);
     
             // DASH + LABEL
-            dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+            dc.setColor(Palette.PRIMARY, Graphics.COLOR_TRANSPARENT);
     
             // DASH LINE
             dc.drawText(
@@ -130,7 +131,7 @@ class FooterRenderer {
             );
     
             // PIPE centrale
-            dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
+            dc.setColor(Palette.ACCENT, Graphics.COLOR_TRANSPARENT);
             dc.drawText(
                 _cx,
                 _pipeY,
@@ -156,7 +157,7 @@ class FooterRenderer {
         );
     
         // valore batteria
-        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(Palette.PRIMARY, Graphics.COLOR_TRANSPARENT);
         dc.drawText(
             _battRX,
             _battY,
