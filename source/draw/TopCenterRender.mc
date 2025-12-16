@@ -106,7 +106,7 @@ class TopCenterRenderer {
         dc.fillRectangle(_leftX + 100 * s , _clearY, 30 * s, (90.0 * s));
 
         // PIPE
-        dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(Palette.ACCENT, Graphics.COLOR_TRANSPARENT);
         dc.drawText(
             _pipeX,
             _pipeY,
@@ -144,7 +144,7 @@ class TopCenterRenderer {
             (90.0 * s)
         );
 
-        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(Palette.PRIMARY, Graphics.COLOR_TRANSPARENT);
         dc.drawText(
             _timeX,
             _timeY,
@@ -153,7 +153,7 @@ class TopCenterRenderer {
             Graphics.TEXT_JUSTIFY_RIGHT
         );
 
-        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(Palette.PRIMARY, Graphics.COLOR_TRANSPARENT);
 
         // TOUCH
         dc.drawText(

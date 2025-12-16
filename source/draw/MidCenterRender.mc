@@ -125,14 +125,14 @@ class MidCenterRenderer {
         dc.fillRectangle(0, _clearY, _w, _clearH);
 
         // ---- Barre verdi (sempre uguali) ----
-        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_GREEN);
+        dc.setColor(Palette.PRIMARY, Palette.PRIMARY);
         for (var i = 0; i < 7; i += 1) {
             var bx = _firstX + i * (_barW + _barSp);
             dc.fillRectangle(bx, _barsY, _barW, _barH);
         }
 
         // "|_" (static)
-        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(Palette.PRIMARY, Graphics.COLOR_TRANSPARENT);
         dc.drawText(
             _structX,
             _structY - 57.0 * s, // mantengo il tuo offset originale
@@ -185,7 +185,7 @@ class MidCenterRenderer {
         );
 
         // ridisegno data
-        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(Palette.PRIMARY, Graphics.COLOR_TRANSPARENT);
         dc.drawText(
             _cx,
             _dateY,
@@ -217,12 +217,12 @@ class MidCenterRenderer {
         var capX = _firstX + weekdayIndex * (_barW + _barSp);
         var capY = _barsY - _capH - _capGap;
 
-        dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_ORANGE);
+        dc.setColor(Palette.ACCENT, Palette.ACCENT);
         dc.fillRectangle(capX, capY, _barW, _capH);
 
         // label giorno corrente in arancione sopra quella bianca
         var tx = capX + (_barW / 2.0);
-        dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(Palette.ACCENT, Graphics.COLOR_TRANSPARENT);
         dc.drawText(
             tx,
             _daysY,
@@ -233,7 +233,7 @@ class MidCenterRenderer {
 
 
         // "Day" (ridisegnato perché la clear dinamica lo copre)
-        dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(Palette.ACCENT, Graphics.COLOR_TRANSPARENT);
         dc.drawText(
             _dayLabelX,
             _dateY,

@@ -3,6 +3,7 @@ import Toybox.Graphics;
 import Toybox.System;
 import Toybox.WatchUi;
 import Log;
+import Prefs;
 
 using GraphicsManager;
 
@@ -15,6 +16,7 @@ class BatterySafeView extends WatchUi.WatchFace {
     var _aodLastSlot;
     var _isLowPower;
     var _didDrawAod;
+    var _lastSettingsVersion;
 
 
     function initialize() {
@@ -25,8 +27,10 @@ class BatterySafeView extends WatchUi.WatchFace {
         _aodShiftX = 0;
         _aodShiftY = 0;
         _aodLastSlot = -1;
+        _lastSettingsVersion = -1;
         _state = new State();
         _dataManager = new DataManager(_state);
+        Palette.load();
     }
 
     function onLayout(dc as Dc) as Void {
@@ -41,7 +45,6 @@ class BatterySafeView extends WatchUi.WatchFace {
     function onUpdate(dc as Dc) as Void {
 
         try {
-            
             if (_isLowPower) {
                 _didDrawAod = true;
                 var s = GraphicsManager.getScale(dc);
@@ -53,7 +56,7 @@ class BatterySafeView extends WatchUi.WatchFace {
                 GraphicsManager.drawAodDate(dc, _state, _aodShiftX, _aodShiftY);
                 return;
             }
-
+            applySettingsIfNeeded();
             var nowMs = System.getTimer();
             // -----------------------------
             // Refresh dati (scheduler)
@@ -73,7 +76,18 @@ class BatterySafeView extends WatchUi.WatchFace {
 
             if (minuteKey != _state.lastMinuteKey) {
                 _state.lastMinuteKey = minuteKey;
-                _state.timeStr = ct.hour.format("%02d") + ":" + ct.min.format("%02d");
+
+                    var hh = ct.hour;
+
+                    if (!Prefs.use24h) {
+                        hh = hh % 12;
+                        if (hh == 0) { hh = 12; }
+                        // 12h senza AM/PM (come vuoi tu)
+                        _state.timeStr = hh.format("%02d") + ":" + ct.min.format("%02d");
+                    }
+                    
+                    _state.timeStr = hh.format("%02d") + ":" + ct.min.format("%02d");
+
                 _state.dirtyTop = true;
             }
 
@@ -183,6 +197,19 @@ class BatterySafeView extends WatchUi.WatchFace {
         if (m == 3) { _aodShiftX = d;  _aodShiftY = d; }
     }
 
+    function applySettingsIfNeeded() {
 
+        if (_lastSettingsVersion == SettingsBus.version) { return; }
+        _lastSettingsVersion = SettingsBus.version;
+
+        Palette.load();
+        Prefs.load();
+        
+        _state.lastMinuteKey = -1;
+
+        GraphicsManager.invalidateStatic();
+
+        _state.needsFullRedraw = true;
+    }
 
 }
