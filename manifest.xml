@@ -13,8 +13,6 @@
                                        that belong to the same product category													
             "Monkey C: Edit Products" - Lets you add or remove any product
         -->
-
-        
         <iq:products>
             <iq:product id="d2mach1"/>
             <iq:product id="d2mach2"/>
@@ -50,7 +48,6 @@
             palette to update permissions.
         -->
         <iq:permissions>
-            <iq:uses-permission id="SensorHistory"/>
             <iq:uses-permission id="UserProfile"/>
         </iq:permissions>
         <!--
