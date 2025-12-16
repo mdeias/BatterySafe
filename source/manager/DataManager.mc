@@ -14,9 +14,6 @@ class DataManager {
     function initialize(state as State) {
         _state = state;
 
-        // Touch: capability -> una volta
-        readTouchCapability();
-
         // Date iniziale
         refreshDateIfNeeded();
     }
@@ -24,15 +21,6 @@ class DataManager {
     // chiamala ad ogni onUpdate (economica)
     function refreshFast() {
         refreshDateIfNeeded();
-        readTouchCapability();
-    }
-
-    function refreshStepsIfNeeded(nowMs, force) {
-        if (!force && _state.lastStepsTs != 0 && (nowMs - _state.lastStepsTs) < STEPS_REFRESH_MS) {
-            return;
-        }
-        _state.lastStepsTs = nowMs;
-        updateSteps();
     }
 
     function refreshBatteryIfNeeded(nowMs, force) {
@@ -41,14 +29,6 @@ class DataManager {
         }
         _state.lastBatteryTs = nowMs;
         updateDeviceBattery();
-    }
-
-    function refreshBodyBatteryIfNeeded(nowMs) {
-        if (_state.lastBodyBatteryTs != 0 && (nowMs - _state.lastBodyBatteryTs) < BB_REFRESH_MS) {
-            return;
-        }
-        _state.lastBodyBatteryTs = nowMs;
-        updateBodyBattery();
     }
 
     // ----------------------------
@@ -79,29 +59,6 @@ class DataManager {
     }
 
     // ----------------------------
-    // TOUCH (capability)
-    // ----------------------------
-    function readTouchCapability() {
-        try {
-            var settings = System.getDeviceSettings();
-            if (settings != null && (settings has :isTouchScreen)) {
-
-                _state.isTouchScreen = settings.isTouchScreen;
-                _state.hasRealIsTouchScreen = true;
-
-                var newStr = _state.isTouchScreen ? "Touch: Yes" : "Touch: No";
-                if (_state.touchStr != newStr) {
-                    _state.touchStr = newStr;
-                    _state.dirtyTop = true;
-                }
-            }
-        } catch (e) {
-            // se non disponibile, lascia il default dello State
-        }
-    }
-
-
-    // ----------------------------
     // DEVICE BATTERY
     // ----------------------------
     function updateDeviceBattery() {
@@ -115,49 +72,6 @@ class DataManager {
         if (_state.devBatteryStr != newStr) {
             _state.devBatteryStr = newStr;
             _state.dirtyFooter = true;
-        }
-    }
-
-
-    // ----------------------------
-    // STEPS
-    // ----------------------------
-    function updateSteps() {
-        var data = Metrics.getStepsAndGoal();
-        if (data == null) { return; }
-
-        var steps = data[:steps];
-        var goal  = data[:goal];
-        if (steps == null || goal == null || goal <= 0) { return; }
-
-        var pct = (steps * 100) / goal;
-
-        _state.steps = steps;
-        _state.stepGoal = goal;
-        _state.stepsPercent = pct;
-        _state.hasRealSteps = true;
-
-        var newStr = "Steps: " + steps.format("%d") + " -> " + pct.format("%d") + "%";
-        if (_state.stepsLineStr != newStr) {
-            _state.stepsLineStr = newStr;
-            _state.dirtyHeader = true;
-        }
-    }
-
-    // ----------------------------
-    // BODY BATTERY
-    // ----------------------------
-    function updateBodyBattery() {
-        var bb = Metrics.getBodyBattery();
-        if (bb == null) { return; }
-
-        _state.bodyBattery = bb;
-        _state.hasRealBodyBattery = true;
-
-        var newStr = "BodyB: " + bb.format("%d");
-        if (_state.bodyBatteryStr != newStr) {
-            _state.bodyBatteryStr = newStr;
-            _state.dirtyTop = true;
         }
     }
 
