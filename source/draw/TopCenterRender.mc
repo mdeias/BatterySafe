@@ -21,9 +21,9 @@ class TopCenterRenderer {
     var _timeY;
     var _timeX;
 
-    var _touchY;
+    var _line1Y;
     var _dashY;
-    var _bbY;
+    var _line2Y;
 
     var _leftX;
 
@@ -50,9 +50,9 @@ class TopCenterRenderer {
         _timeY = 0;
         _timeX = 0;
 
-        _touchY = 0;
+        _line1Y = 0;
         _dashY  = 0;
-        _bbY    = 0;
+        _line2Y    = 0;
 
         _leftX = 0;
 
@@ -83,9 +83,9 @@ class TopCenterRenderer {
 
         _leftX  = _cx + 62.0 * s;
 
-        _touchY = _timeY + 32.0 * s;
+        _line1Y = _timeY + 32.0 * s;
         _dashY  = _timeY + 56.0 * s;
-        _bbY    = _timeY + 78.0 * s;
+        _line2Y    = _timeY + 78.0 * s;
 
         _pipeX = _w - 30.0 * s;
         _pipeY = _timeY + 18.0 * s;
@@ -158,18 +158,18 @@ class TopCenterRenderer {
         // TOUCH
         dc.drawText(
             _leftX,
-            _touchY,
+            _line1Y,
             _fontMid,
-            state.touchStr,
+            state.topLine1Str,
             Graphics.TEXT_JUSTIFY_LEFT
         );
 
         // BB
         dc.drawText(
             _leftX,
-            _bbY,
+            _line2Y,
             _fontMid,
-            state.bodyBatteryStr,
+            state.topLine2Str,
             Graphics.TEXT_JUSTIFY_LEFT
         );
 

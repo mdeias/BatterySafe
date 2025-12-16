@@ -1,7 +1,4 @@
 using Toybox.System;
-using Toybox.ActivityMonitor;
-using Toybox.Battery;
-using Toybox.SensorHistory;
 using Log;
 
 module Metrics {
@@ -9,16 +6,24 @@ module Metrics {
     // -------------------------------------------------
     //  BATTERIA DEVICE
     // -------------------------------------------------
+
     function getDeviceBatteryPercent() {
         try {
-            var status = System.getSystemStats();
-            if (status != null && status.battery != null) {
-                return status.battery; // 0..100
+            var stats = System.getSystemStats();
+            if (stats != null && (stats has :battery)) {
+                return stats.battery; // Number 0..100
             }
-        } catch (e) {
-            Log.dbg("getDeviceBatteryPercent: " + e);
-        }
+        } catch (e) { }
         return null;
     }
-
+    function getIsCharging() {
+        try {
+            var stats = System.getSystemStats();
+            if (stats != null && (stats has :charging)) {
+                return stats.charging; // Bool
+            }
+        } catch (e) { }
+        return null;
+    }
 }
+

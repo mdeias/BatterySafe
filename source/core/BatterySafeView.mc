@@ -201,7 +201,7 @@ class BatterySafeView extends WatchUi.WatchFace {
 
         Palette.load();
         Prefs.load();
-        
+        _state.dirtyTop = true;
         _state.lastMinuteKey = -1;
 
         GraphicsManager.invalidateStatic();
