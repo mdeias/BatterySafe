@@ -10,7 +10,7 @@ class HeaderRenderer {
     const TAGLINE        = "Battery Life Optimized";
     const MARKER_LEFT    = "|--";
     const MARKER_RIGHT   = "--|";
-    const STEPS_FALLBACK = "Steps: -- -> --%";
+    const HEADER_FALLBACK = "Last: --";
 
     // Cached geometry
     var _w;
@@ -155,9 +155,8 @@ class HeaderRenderer {
             (35.0 * s)
         );
 
-        // draw steps
-        var text = state.stepsLineStr;
-        if (text == null) { text = STEPS_FALLBACK; } // safe
+        var text = state.headerStr;
+        if (text == null) { text = HEADER_FALLBACK; }
 
         dc.setColor(Palette.PRIMARY, Graphics.COLOR_TRANSPARENT);
         dc.drawText(

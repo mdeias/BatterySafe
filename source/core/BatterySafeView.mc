@@ -63,9 +63,7 @@ class BatterySafeView extends WatchUi.WatchFace {
             // -----------------------------
             if (_dataManager != null) {
                 _dataManager.refreshFast();
-                _dataManager.refreshStepsIfNeeded(nowMs, false);
                 _dataManager.refreshBatteryIfNeeded(nowMs, false);
-                _dataManager.refreshBodyBatteryIfNeeded(nowMs);
             }
 
             // -----------------------------
@@ -165,7 +163,6 @@ class BatterySafeView extends WatchUi.WatchFace {
 
         if (_dataManager != null) {
             var nowMs = System.getTimer();
-            _dataManager.refreshStepsIfNeeded(nowMs, true);
             _dataManager.refreshBatteryIfNeeded(nowMs, true);
         }
 
@@ -204,7 +201,7 @@ class BatterySafeView extends WatchUi.WatchFace {
 
         Palette.load();
         Prefs.load();
-        
+        _state.dirtyTop = true;
         _state.lastMinuteKey = -1;
 
         GraphicsManager.invalidateStatic();
