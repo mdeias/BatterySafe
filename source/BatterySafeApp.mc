@@ -23,6 +23,7 @@ class BatterySafeApp extends Application.AppBase {
 
     // New app settings have been received so trigger a UI update
     function onSettingsChanged() as Void {
+        SettingsBus.bump();
         WatchUi.requestUpdate();
     }
 

@@ -13,4 +13,13 @@
     <string id="ColorBlue">Blue</string>
     <string id="ColorRed">Red</string>
 
+
+    <string id="weekday_sun">SUN</string>
+    <string id="weekday_mon">MON</string>
+    <string id="weekday_tue">TUE</string>
+    <string id="weekday_wed">WED</string>
+    <string id="weekday_thu">THU</string>
+    <string id="weekday_fri">FRI</string>
+    <string id="weekday_sat">SAT</string>
+
 </strings>
