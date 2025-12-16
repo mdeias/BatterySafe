@@ -62,7 +62,7 @@ class BatterySafeView extends WatchUi.WatchFace {
             // Refresh dati (scheduler)
             // -----------------------------
             if (_dataManager != null) {
-                _dataManager.refreshFast();
+                _dataManager.refreshFast(nowMs);
                 _dataManager.refreshBatteryIfNeeded(nowMs, false);
             }
 
@@ -80,8 +80,6 @@ class BatterySafeView extends WatchUi.WatchFace {
                     if (!Prefs.use24h) {
                         hh = hh % 12;
                         if (hh == 0) { hh = 12; }
-                        // 12h senza AM/PM (come vuoi tu)
-                        _state.timeStr = hh.format("%02d") + ":" + ct.min.format("%02d");
                     }
                     
                     _state.timeStr = hh.format("%02d") + ":" + ct.min.format("%02d");
@@ -201,7 +199,6 @@ class BatterySafeView extends WatchUi.WatchFace {
 
         Palette.load();
         Prefs.load();
-        _state.dirtyTop = true;
         _state.lastMinuteKey = -1;
 
         GraphicsManager.invalidateStatic();
