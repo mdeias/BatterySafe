@@ -9,9 +9,9 @@ class DataManager {
     const HEADER_REFRESH_MS = 60 * 60 * 1000; // 60 min (Last charge elapsed)
 
     // Top2 mode (decidi tu dove settarlo: settings o default nello State)
-    const TOP2_EFF = 0;
-    const TOP2_CHG = 1;
-    const TOP2_TTE = 2;
+    const TOP2_TTE = 0;
+    const TOP2_EFF = 1;
+    const TOP2_CHG = 2;
 
     var _state as State;
 
@@ -180,7 +180,7 @@ class DataManager {
             _state.lastBattSampleTs  = nowMs;
             _state.lastBattSamplePct = pct;
             _state.lastRatePerHour   = null;
-            setTop1("--");
+            setTop1("Drain: --");
             return;
         }
 
@@ -199,30 +199,34 @@ class DataManager {
         _state.lastBattSamplePct = pct;
         _state.lastRatePerHour   = rate;
 
-        // format "Δ -1.2%/h" (1 decimale)
+        // 1 decimal rounding using *10 integer
         var r10 = (rate * 10.0);
         var rounded10 = (r10 >= 0) ? (r10 + 0.5) : (r10 - 0.5);
         rounded10 = rounded10.toNumber();
 
         var abs10 = (rounded10 < 0) ? -rounded10 : rounded10;
-        var ip = (abs10 / 10).toNumber();
+        var ip  = (abs10 / 10).toNumber();
         var dp1 = (abs10 % 10).toNumber();
 
-        var prefix = "";
-        if (rounded10 > 0) { prefix = "+"; }
-        if (rounded10 < 0) { prefix = "-"; }
+        var val = ip.format("%d") + "." + dp1.format("%d") + "%/h";
 
-        var rateStr = prefix + ip.format("%d") + "." + dp1.format("%d") + "%/h";
-        setTop1("Δ " + rateStr);
+        if (rounded10 < 0) {
+            setTop1("Drain: " + val);
+        } else if (rounded10 > 0) {
+            setTop1("Charge: " + val);
+        } else {
+            setTop1("Drain: 0.0%/h");
+        }
     }
 
     function setTop1(str) {
-        if (str == null) { str = "--"; }
+        if (str == null) { str = "Drain: --"; }
         if (_state.topLine1Str != str) {
             _state.topLine1Str = str;
             _state.dirtyTop = true;
         }
     }
+
 
     // ----------------------------
     // Header: Last charge elapsed
@@ -261,11 +265,11 @@ class DataManager {
         if (mode == TOP2_CHG) {
 
             if (_state.charging && _state.chargeStartTs != 0 && nowMs > _state.chargeStartTs) {
-                out = "Chg: " + _fmtDH(nowMs - _state.chargeStartTs);
+                out = "Charging: " + _fmtDH(nowMs - _state.chargeStartTs);
             } else if (_state.lastChargeDurMs != 0) {
-                out = "Chg: " + _fmtDH(_state.lastChargeDurMs);
+                out = "Charging: " + _fmtDH(_state.lastChargeDurMs);
             } else {
-                out = "Chg: --";
+                out = "Charging: --";
             }
 
         } else {
@@ -273,7 +277,7 @@ class DataManager {
             var rate = _state.lastRatePerHour; // Float
             if (rate == null) {
 
-                out = (mode == TOP2_TTE) ? "TTE --" : "Eff: --";
+                out = (mode == TOP2_TTE) ? "Remaining: --" : "Score: --";
 
             } else {
 
@@ -293,7 +297,7 @@ class DataManager {
 
     function formatEff(rate) {
         // consumo: rate negativo => cons positivo
-        if (rate >= 0) { return "Eff: --"; }
+        if (rate >= 0) { return "Score: --"; }
 
         var cons = -rate; // %/h
 
@@ -303,15 +307,15 @@ class DataManager {
         else if (cons <= 2.0) { grade = "C"; }
         else if (cons <= 3.0) { grade = "D"; }
 
-        return "Eff: " + grade;
+        return "Score: " + grade;
     }
 
     function formatTte(rate) {
-        if (rate >= 0) { return "TTE --"; }
-        if (_state.devBattery == null) { return "TTE --"; }
+        if (rate >= 0) { return "Left: --"; }
+        if (_state.devBattery == null) { return "Left: --"; }
 
         var cons = -rate; // %/h
-        if (cons <= 0) { return "TTE --"; }
+        if (cons <= 0) { return "Left: --"; }
 
         var hours = (_state.devBattery.toFloat() / cons);
         var totalMin = (hours * 60.0).toNumber();
@@ -319,7 +323,7 @@ class DataManager {
         var d = (totalMin / (60 * 24)).toNumber();
         var h = ((totalMin - d * 60 * 24) / 60).toNumber();
 
-        return "TTE " + d.format("%d") + "d " + h.format("%d") + "h";
+        return "Left: " + d.format("%d") + "d " + h.format("%d") + "h";
     }
 
     // ----------------------------
