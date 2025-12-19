@@ -180,7 +180,7 @@ class DataManager {
             _state.lastBattSampleTs  = nowMs;
             _state.lastBattSamplePct = pct;
             _state.lastRatePerHour   = null;
-            setTop1("Drain: --");
+            setTop1("Use: --");
             return;
         }
 
@@ -192,7 +192,18 @@ class DataManager {
         var hours = (dt.toFloat() / 3600000.0);
         if (hours <= 0) { return; }
 
-        var dp   = (pct - _state.lastBattSamplePct).toFloat();
+        var dp = (pct - _state.lastBattSamplePct).toFloat();
+
+        // Se la percentuale non cambia dopo la finestra, assumiamo rate=0
+        if (dp == 0) {
+            _state.lastBattSampleTs  = nowMs;
+            _state.lastBattSamplePct = pct;
+            _state.lastRatePerHour   = 0.0;
+
+            setTop1("Use: 0.0%");
+            return;
+        }
+
         var rate = dp / hours; // %/h
 
         _state.lastBattSampleTs  = nowMs;
@@ -208,19 +219,19 @@ class DataManager {
         var ip  = (abs10 / 10).toNumber();
         var dp1 = (abs10 % 10).toNumber();
 
-        var val = ip.format("%d") + "." + dp1.format("%d") + "%/h";
+        var val = ip.format("%d") + "." + dp1.format("%d") + "%";
 
         if (rounded10 < 0) {
-            setTop1("Drain: " + val);
+            setTop1("Use: " + val);
         } else if (rounded10 > 0) {
-            setTop1("Charge: " + val);
+            setTop1("Chg: " + val);
         } else {
-            setTop1("Drain: 0.0%/h");
+            setTop1("Use: 0.0%");
         }
     }
 
     function setTop1(str) {
-        if (str == null) { str = "Drain: --"; }
+        if (str == null) { str = "Use: --"; }
         if (_state.topLine1Str != str) {
             _state.topLine1Str = str;
             _state.dirtyTop = true;
@@ -297,9 +308,8 @@ class DataManager {
 
     function formatEff(rate) {
         // consumo: rate negativo => cons positivo
-        if (rate >= 0) { return "Score: --"; }
-
-        var cons = -rate; // %/h
+        if (rate > 0) { return "Score: --"; }  // in carica non ha senso valutare
+        var cons = (rate < 0) ? -rate : 0.0;   // rate==0 => cons=0
 
         var grade = "E";
         if (cons <= 0.7) { grade = "A"; }
@@ -327,7 +337,7 @@ class DataManager {
     }
 
     // ----------------------------
-    // Formatter già tuo
+    // Formatter
     // ----------------------------
     function _fmtDH(ms) {
         if (ms <= 0) { return "--"; }

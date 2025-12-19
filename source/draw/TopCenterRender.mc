@@ -81,7 +81,7 @@ class TopCenterRenderer {
         _timeY = 100.0 * s;
         _timeX = _cx + 60.0 * s;
 
-        _leftX  = _cx + 62.0 * s;
+        _leftX  = _cx + 66.0 * s;
 
         _line1Y = _timeY + 32.0 * s;
         _dashY  = _timeY + 56.0 * s;
@@ -155,7 +155,7 @@ class TopCenterRenderer {
 
         dc.setColor(Palette.PRIMARY, Graphics.COLOR_TRANSPARENT);
 
-        // TOUCH
+        // LINE 1
         dc.drawText(
             _leftX,
             _line1Y,
@@ -164,7 +164,7 @@ class TopCenterRenderer {
             Graphics.TEXT_JUSTIFY_LEFT
         );
 
-        // BB
+        // LINE 2
         dc.drawText(
             _leftX,
             _line2Y,
