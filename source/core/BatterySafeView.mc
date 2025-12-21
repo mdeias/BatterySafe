@@ -18,7 +18,6 @@ class BatterySafeView extends WatchUi.WatchFace {
     var _didDrawAod;
     var _lastSettingsVersion;
 
-
     function initialize() {
         WatchFace.initialize();
 
@@ -63,8 +62,16 @@ class BatterySafeView extends WatchUi.WatchFace {
             // -----------------------------
             if (_dataManager != null) {
                 _dataManager.refreshFast(nowMs);
-                _dataManager.refreshBatteryIfNeeded(nowMs, false);
+
+                // Chiama la parte "battery sample" solo quando serve davvero
+                var needBattery = (_state.lastBatteryTs == 0) ||
+                                  ((nowMs - _state.lastBatteryTs) >= _dataManager.getBatteryRefreshMs());
+
+                if (needBattery) {
+                    _dataManager.refreshBatteryIfNeeded(nowMs, false);
+                }
             }
+
 
             // -----------------------------
             // Time cache (solo se cambia minuto)
@@ -84,7 +91,7 @@ class BatterySafeView extends WatchUi.WatchFace {
                     
                     _state.timeStr = hh.format("%02d") + ":" + ct.min.format("%02d");
 
-                _state.dirtyTop = true;
+                _state.dirtyTime = true;
             }
 
             // -----------------------------
@@ -113,7 +120,7 @@ class BatterySafeView extends WatchUi.WatchFace {
                 GraphicsManager.drawHeader(dc, _state);
             }
 
-            if (_state.dirtyTop) {
+            if (_state.dirtyTime || _state.dirtyTopLines) {
                 GraphicsManager.drawTopCenter(dc, _state);
             }
 
@@ -163,7 +170,7 @@ class BatterySafeView extends WatchUi.WatchFace {
             var nowMs = System.getTimer();
             _dataManager.refreshBatteryIfNeeded(nowMs, true);
         }
-
+        _state.dirtyTime = true;
         _state.dirtyHeader = true;
         _state.dirtyFooter = true;
     }
@@ -202,7 +209,11 @@ class BatterySafeView extends WatchUi.WatchFace {
         _state.lastMinuteKey = -1;
 
         GraphicsManager.invalidateStatic();
-
+        _state.dirtyTime = true;
+        _state.dirtyTopLines = true;
+        _state.dirtyHeader = true;
+        _state.dirtyMid = true;
+        _state.dirtyFooter = true;
         _state.needsFullRedraw = true;
     }
 

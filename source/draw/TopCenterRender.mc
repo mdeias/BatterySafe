@@ -133,14 +133,46 @@ class TopCenterRenderer {
             drawStatic(dc, s);
         }
 
-        // -----------------------------------------
-        // DYNAMIC: ORA
-        // -----------------------------------------
+        if (state.dirtyTime) {
+            drawTimePart(dc, state, s);
+        }
+
+        if (state.dirtyTopLines) {
+            drawLinesPart(dc, state, s);
+        }
+
+    }
+
+    // ----------------------------
+    // AOD: SOLO ORA (stessa posizione e dimensione del normale)
+    // ----------------------------
+    function drawAodTime(dc as Graphics.Dc, state as State, s, shiftX, shiftY) {
+
+        // assicurati che layout sia pronto (usa lo stesso font/geo)
+        if (_lastScale == null || _lastScale != s) {
+            layout(dc, s);
+            _lastScale = s;
+        }
+
+        // ora
+        dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(
+            _timeX + shiftX,
+            _timeY + shiftY,
+            _fontTime,
+            state.timeStr,
+            Graphics.TEXT_JUSTIFY_RIGHT
+        );
+    }
+
+    function drawTimePart(dc as Graphics.Dc, state as State, s) {
+
+        // pulizia area ora (uguale a prima)
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
         dc.fillRectangle(
             0,
             _timeY + (20.0 * s),
-            _w - 35 * s,
+            _w - 135 * s,
             (90.0 * s)
         );
 
@@ -151,6 +183,18 @@ class TopCenterRenderer {
             _fontTime,
             state.timeStr,
             Graphics.TEXT_JUSTIFY_RIGHT
+        );
+    }
+
+    function drawLinesPart(dc as Graphics.Dc, state as State, s) {
+
+        // pulizia area linee (più stretta: solo colonna sinistra)
+        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
+        dc.fillRectangle(
+            _leftX,
+            _line1Y - (4.0 * s),
+            (_w - _leftX - 30.0 * s),
+            (80.0 * s) // copre line1 + dash + line2
         );
 
         dc.setColor(Palette.PRIMARY, Graphics.COLOR_TRANSPARENT);
@@ -183,27 +227,6 @@ class TopCenterRenderer {
         );
     }
 
-    // ----------------------------
-    // AOD: SOLO ORA (stessa posizione e dimensione del normale)
-    // ----------------------------
-    function drawAodTime(dc as Graphics.Dc, state as State, s, shiftX, shiftY) {
-
-        // assicurati che layout sia pronto (usa lo stesso font/geo)
-        if (_lastScale == null || _lastScale != s) {
-            layout(dc, s);
-            _lastScale = s;
-        }
-
-        // ora
-        dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(
-            _timeX + shiftX,
-            _timeY + shiftY,
-            _fontTime,
-            state.timeStr,
-            Graphics.TEXT_JUSTIFY_RIGHT
-        );
-    }
 
 
 }
