@@ -95,7 +95,7 @@ class HeaderRenderer {
     function drawStatic(dc as Graphics.Dc, s) {
 
         // pulizia completa header UNA volta
-        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
+        dc.setColor(Graphics.COLOR_PINK, Graphics.COLOR_BLACK);
         dc.fillRectangle(0, 0, _w, _clearH);
 
         // triangolo pieno
