@@ -30,7 +30,7 @@ class State {
     var devBatteryStr;     // MAI null ("85%"/"--")
     var hasRealDevBattery; // Bool
     var charging;          // Bool
-
+    var lastChargingCheckTs;
     // ----------------------------
     // Battery tracking (trend / charge)
     // ----------------------------
@@ -68,7 +68,9 @@ class State {
     // Dirty flags
     // ----------------------------
     var dirtyHeader;
-    var dirtyTop;
+    var dirtyTop;       // Eliminare 
+    var dirtyTime;      // solo ora (top time)
+    var dirtyTopLines;  // line1 + line2 + dash
     var dirtyMid;
     var dirtyFooter;
 
@@ -101,7 +103,7 @@ class State {
         lastChargeDurMs   = 0;
 
         lastHeaderTs      = 0;
-
+        lastChargingCheckTs = 0;
         // fixed lines
         headerStr   = HEADER_FALLBACK;
         topLine1Str = TOP1_FALLBACK;
@@ -119,6 +121,8 @@ class State {
         // first draw
         dirtyHeader     = true;
         dirtyTop        = true;
+        dirtyTime       = true; 
+        dirtyTopLines   = true;
         dirtyMid        = true;
         dirtyFooter     = true;
         needsFullRedraw = true;
@@ -126,7 +130,9 @@ class State {
 
     function clearDirty() {
         dirtyHeader = false;
-        dirtyTop    = false;
+        dirtyTop    = false; // Eliminare
+        dirtyTime     = true; 
+        dirtyTopLines = true;
         dirtyMid    = false;
         dirtyFooter = false;
     }

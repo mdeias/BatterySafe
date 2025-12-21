@@ -7,7 +7,7 @@ class DataManager {
 
     const BAT_REFRESH_MS    = 15 * 60 * 1000; // 15 min (sampling batteria + trend)
     const HEADER_REFRESH_MS = 60 * 60 * 1000; // 60 min (Last charge elapsed)
-
+    const CHG_REFRESH_MS = 5 * 60 * 1000; // 5 min (charging state)
     // Top2 mode (decidi tu dove settarlo: settings o default nello State)
     const TOP2_TTE = 0;
     const TOP2_EFF = 1;
@@ -22,11 +22,13 @@ class DataManager {
         refreshDateIfNeeded();
     }
 
+    public function getBatteryRefreshMs() { return BAT_REFRESH_MS; }
+
     // chiamala ad ogni onUpdate (economica)
     function refreshFast(nowMs) {
         refreshDateIfNeeded();
 
-        // 1) Charging state ogni minuto (low cost)
+        // 1) Charging state ogni 5 minuti (low cost)
         refreshChargingIfNeeded(nowMs);
 
         // 2) Header può aggiornare anche senza battery sample
@@ -234,7 +236,8 @@ class DataManager {
         if (str == null) { str = "Use: --"; }
         if (_state.topLine1Str != str) {
             _state.topLine1Str = str;
-            _state.dirtyTop = true;
+            _state.dirtyTopLines = true;
+
         }
     }
 
@@ -302,7 +305,7 @@ class DataManager {
 
         if (_state.topLine2Str != out) {
             _state.topLine2Str = out;
-            _state.dirtyTop = true;
+            _state.dirtyTopLines = true;
         }
     }
 
@@ -356,6 +359,15 @@ class DataManager {
     }
 
     function refreshChargingIfNeeded(nowMs) {
+
+        // throttle: controlla charging solo ogni CHG_REFRESH_MS
+        if (_state.lastChargingCheckTs != 0 &&
+            (nowMs - _state.lastChargingCheckTs) < CHG_REFRESH_MS) {
+            return;
+        }
+
+        _state.lastChargingCheckTs = nowMs;
+
         var chargingNow = _state.charging;
 
         try {
@@ -367,5 +379,6 @@ class DataManager {
 
         handleChargingTransitions(nowMs, chargingNow);
     }
+
 
 }
