@@ -1,20 +1,20 @@
 # BatterySafe Watchface
 
-BatterySafe is a **battery-first Garmin watchface** designed to minimize power consumption while still providing meaningful and actionable battery insights.
+BatterySafe is a **battery-first Garmin watchface** designed to minimize power consumption while still providing meaningful, actionable battery insights.
 
-Unlike traditional watchfaces, BatterySafe **does not use sensors** (steps, heart rate, body battery, touch, GPS).  
-All displayed metrics are derived **exclusively from system battery data and time**, ensuring extremely low energy impact.
+Unlike many watchfaces, BatterySafe **does not use fitness/sensor metrics** (steps, heart rate, Body Battery, touch, GPS).  
+All displayed metrics are derived **exclusively from system battery data + time**, keeping the energy impact extremely low.
 
 ---
 
 ## 🔋 Core Philosophy
 
-> **Less sensors = less wakeups = more battery life**
+> **Less work per minute = more battery life**
 
 BatterySafe follows three strict principles:
 
 - No sensor access
-- Event-driven updates only
+- Throttled, event-driven updates
 - Aggressive caching (data, strings, and graphics)
 
 This makes it suitable for users who prioritize **maximum autonomy**, especially on AMOLED devices with Always-On Display.
@@ -25,36 +25,37 @@ This makes it suitable for users who prioritize **maximum autonomy**, especially
 
 ### ⏱ Time & Date
 - 12h / 24h format (user selectable)
-- Minimal redraw (only when minute changes)
+- Minimal redraw: **time area updates only when the minute changes**
 - AOD-safe rendering
 
 ---
 
 ### 🔋 Battery Percentage
 - Native device battery percentage
-- Cached and refreshed only when needed
+- Cached and refreshed only when needed (sampling-based)
 
 ---
 
-### 📈 Battery Drain Trend
-Shows how fast the battery is currently draining.
+### 📉 Battery Trend (Use / Charge)
+Shows how the battery is changing over time using sampled values.
 
-Drain: 1.2%/h
+Example:
+- `Use: 1.2%` (draining)
+- `Chg: 0.8%` (charging)
 
-- Calculated from sampled battery percentage
+Notes:
 - Sampling interval: **every 15 minutes**
-- No smoothing, no background polling
-- Cached string, updated only when trend changes
+- Rate is computed internally (normalized to 1 hour), but the UI can display a shorter label/value
+- Trend string is updated only when the sample window completes
 
 ---
 
 ### 🔌 Time Since Last Charge
 Displayed in the header:
 
-Since charge: 3d 4h
+`Since charge: 3d 4h`
 
-
-- Automatically detected when unplugging the charger
+- Automatically detected on unplug
 - Updated at most once per hour
 - Immediate refresh on unplug event
 
@@ -62,35 +63,25 @@ Since charge: 3d 4h
 
 ### 🔧 Customizable Battery Field (Top Slot)
 
-User can choose what to display in the secondary top field:
+The secondary top field can be customized:
 
-#### 1. Battery Efficiency Score
-
-Efficiency: A
-
+#### 1) Battery Score
+Example: `Score: A`
 
 - Based on current drain rate
 - Grades from **A (excellent)** to **E (poor)**
 
----
+#### 2) Estimated Time Left
+Example: `Left: 2d 5h`
 
-#### 2. Estimated Time Remaining
+- Estimated remaining battery life based on current drain trend
+- Calculated from battery percentage and trend
 
-Remaining: 2d 5h
-
-- Estimated remaining battery life at current drain rate
-- Calculated from battery percentage and drain trend
-- Automatically adapts to hours-only view when < 24h
-
----
-
-#### 3. Charging Session Duration
-
-Charging: 45m
-
+#### 3) Charging Session
+Example: `Charging: 45m`
 
 - Shows how long the device has been charging
-- Displays last charging session when unplugged
+- Shows the last charging session duration after unplugging
 
 ---
 
@@ -101,19 +92,19 @@ BatterySafe includes a highly optimized AOD mode:
 - Black background (AMOLED-friendly)
 - Only time and date rendered
 - Pixel shifting every 10 minutes (burn-in prevention)
-- No battery calculations in AOD
-- No dynamic strings
+- No battery sampling/calculations in AOD
+- No dynamic strings in AOD
 
 ---
 
 ## 🎨 Customization
 
-- Primary color selection
-- Accent color selection
+- Primary color
+- Accent color
 - 12h / 24h time format
-- Customizable battery field (Efficiency / Remaining / Charging)
+- Custom top battery field (Score / Left / Charging)
 
-All settings are applied:
+Settings are applied:
 - Only when changed
 - With static renderer invalidation
 - Without continuous polling
@@ -122,42 +113,38 @@ All settings are applied:
 
 ## ⚡ Performance & Battery Optimization
 
-### Key Optimizations
+### Key optimizations
 
 - **No sensors** (steps, HR, Body Battery, touch, stress, GPS)
 - Battery sampling only every **15 minutes**
 - Header refresh limited to **1 hour**
-- Partial redraws using dirty flags
+- Charging state checked at most every **5 minutes** (throttled)
+- Partial redraws via split dirty flags:
+  - `dirtyTime` → redraw time area only
+  - `dirtyTopLines` → redraw the battery lines only when needed
 - Static graphics cached and redrawn only when needed
-- All strings are cached in state (no formatting during draw)
+- Renderers do **no calculations**: strings are built in the DataManager and only drawn in renderers
 - Minimal allocations during `onUpdate()`
 
 ---
 
-## 🔍 Power Consumption Comparison
+## 🔍 Power Consumption Notes
 
-Relative consumption (qualitative):
+BatterySafe is designed to be comparable to (or lower than) very simple digital watchfaces, especially compared to faces that:
+- constantly access sensors
+- show multiple live metrics
+- animate UI elements
 
-| Watchface Type | Relative Consumption |
-|----------------|----------------------|
-| BatterySafe | **1.0× (baseline)** |
-| Simple stock digital | ~1.2–1.4× |
-| Stock with steps / Body Battery | ~1.5–1.8× |
-| Typical store watchface | ~2.0× |
-| Animated watchface | 3×+ |
-
-BatterySafe typically consumes **less power than Garmin stock watchfaces that include fitness metrics**.
+> ⚠️ Actual battery impact depends heavily on device model, AOD settings, brightness, notifications, and installed apps.
 
 ---
 
 ## 🧠 Architecture Overview
 
-- **State**: Centralized cached data and strings
-- **DataManager**: Event-driven calculations and throttled updates
-- **Renderers**: Passive, draw-only components
-- **View**: Orchestrates refresh, redraw, and AOD handling
-
-No renderer performs calculations or string formatting.
+- **State**: centralized cached data and strings
+- **DataManager**: calculations + throttled updates
+- **Renderers**: draw-only components (no formatting)
+- **View**: orchestrates refresh, redraw, and AOD handling
 
 ---
 
@@ -166,7 +153,7 @@ No renderer performs calculations or string formatting.
 - Users who prioritize battery life
 - AMOLED device owners using AOD
 - Long outdoor activities / travel
-- Minimalist and technical users
+- Minimalist + technical users
 - Developers interested in low-power Connect IQ patterns
 
 ---
@@ -175,7 +162,6 @@ No renderer performs calculations or string formatting.
 
 - No steps, heart rate, or fitness metrics
 - No animations
-- No background polling
 - No sensor subscriptions
 - No unnecessary redraws
 
@@ -184,10 +170,3 @@ No renderer performs calculations or string formatting.
 ## 📜 License
 
 Specify your license here (MIT, Apache 2.0, GPL, etc.)
-
----
-
-## 🙌 Credits
-
-Designed and developed with a focus on **energy efficiency, clarity, and robustness**.
-
