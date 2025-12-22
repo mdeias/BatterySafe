@@ -1,172 +1,220 @@
-# BatterySafe Watchface
+import Toybox.Application;
+import Toybox.Graphics;
+import Toybox.System;
+import Toybox.WatchUi;
+import Log;
+import Prefs;
 
-BatterySafe is a **battery-first Garmin watchface** designed to minimize power consumption while still providing meaningful, actionable battery insights.
+using GraphicsManager;
 
-Unlike many watchfaces, BatterySafe **does not use fitness/sensor metrics** (steps, heart rate, Body Battery, touch, GPS).  
-All displayed metrics are derived **exclusively from system battery data + time**, keeping the energy impact extremely low.
+class BatterySafeView extends WatchUi.WatchFace {
 
----
+    var _state;
+    var _dataManager;
+    var _aodShiftX;
+    var _aodShiftY;
+    var _aodLastSlot;
+    var _isLowPower;
+    var _didDrawAod;
+    var _lastSettingsVersion;
 
-## 🔋 Core Philosophy
+    function initialize() {
+        WatchFace.initialize();
 
-> **Less work per minute = more battery life**
+        _isLowPower = false;
+        _didDrawAod = false;
+        _aodShiftX = 0;
+        _aodShiftY = 0;
+        _aodLastSlot = -1;
+        _lastSettingsVersion = -1;
+        _state = new State();
+        _dataManager = new DataManager(_state);
+        Palette.load();
+    }
 
-BatterySafe follows three strict principles:
+    function onLayout(dc as Dc) as Void {
+        // no XML layout
+    }
 
-- No sensor access
-- Throttled, event-driven updates
-- Aggressive caching (data, strings, and graphics)
+    function getRefreshRate() {
+        // 1 update al minuto
+        return 60 * 1000;
+    }
 
-This makes it suitable for users who prioritize **maximum autonomy**, especially on AMOLED devices with Always-On Display.
+    function onUpdate(dc as Dc) as Void {
 
----
+        try {
+            if (_isLowPower) {
+                _didDrawAod = true;
+                var s = GraphicsManager.getScale(dc);
+                var nowMs = System.getTimer();
+                dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
+                dc.clear();
+                updateAodShift(nowMs, s);
+                GraphicsManager.drawAodTime(dc, _state, _aodShiftX, _aodShiftY);
+                GraphicsManager.drawAodDate(dc, _state, _aodShiftX, _aodShiftY);
+                return;
+            }
+            applySettingsIfNeeded();
+            var nowMs = System.getTimer();
+            // -----------------------------
+            // Refresh dati (scheduler)
+            // -----------------------------
+            if (_dataManager != null) {
+                _dataManager.refreshFast(nowMs);
 
-## ✨ Features
+                // Chiama la parte "battery sample" solo quando serve davvero
+                var needBattery = (_state.lastBatteryTs == 0) ||
+                                  ((nowMs - _state.lastBatteryTs) >= _dataManager.getBatteryRefreshMs());
 
-### ⏱ Time & Date
-- 12h / 24h format (user selectable)
-- Minimal redraw: **time area updates only when the minute changes**
-- AOD-safe rendering
+                if (needBattery) {
+                    _dataManager.refreshBatteryIfNeeded(nowMs, false);
+                }
+            }
 
----
 
-### 🔋 Battery Percentage
-- Native device battery percentage
-- Cached and refreshed only when needed (sampling-based)
+            // -----------------------------
+            // Time cache (solo se cambia minuto)
+            // -----------------------------
+            var ct = System.getClockTime();
+            var minuteKey = (ct.hour * 60) + ct.min;
 
----
+            if (minuteKey != _state.lastMinuteKey) {
+                _state.lastMinuteKey = minuteKey;
 
-### 📉 Battery Trend (Use / Charge)
-Shows how the battery is changing over time using sampled values.
+                    var hh = ct.hour;
 
-Example:
-- `Use: 1.2%` (draining)
-- `Chg: 0.8%` (charging)
+                    if (!Prefs.use24h) {
+                        hh = hh % 12;
+                        if (hh == 0) { hh = 12; }
+                    }
+                    
+                    _state.timeStr = hh.format("%02d") + ":" + ct.min.format("%02d");
 
-Notes:
-- Sampling interval: **every 15 minutes**
-- Rate is computed internally (normalized to 1 hour), but the UI can display a shorter label/value
-- Trend string is updated only when the sample window completes
+                _state.dirtyTime = true;
+            }
 
----
+            // -----------------------------
+            // FULL REDRAW
+            // (prima volta, o quando lo forziamo dopo sleep / ecc.)
+            // -----------------------------
+            if (_state.needsFullRedraw) {
 
-### 🔌 Time Since Last Charge
-Displayed in the header:
+                dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
+                dc.clear();
 
-`Since charge: 3d 4h`
+                GraphicsManager.drawHeader(dc, _state);
+                GraphicsManager.drawTopCenter(dc, _state);
+                GraphicsManager.drawMidCenter(dc, _state);
+                GraphicsManager.drawFooter(dc, _state);
 
-- Automatically detected on unplug
-- Updated at most once per hour
-- Immediate refresh on unplug event
+                _state.needsFullRedraw = false;
+                _state.clearDirty();
+                return;
+            }
 
----
+            // -----------------------------
+            // PARTIAL REDRAW (solo sezioni dirty)
+            // -----------------------------
+            if (_state.dirtyHeader) {
+                GraphicsManager.drawHeader(dc, _state);
+            }
 
-### 🔧 Customizable Battery Field (Top Slot)
+            if (_state.dirtyTime || _state.dirtyTopLines) {
+                GraphicsManager.drawTopCenter(dc, _state);
+            }
 
-The secondary top field can be customized:
+            if (_state.dirtyMid) {
+                GraphicsManager.drawMidCenter(dc, _state);
+            }
 
-#### 1) Battery Score
-Example: `Score: A`
+            if (_state.dirtyFooter) {
+                GraphicsManager.drawFooter(dc, _state);
+            }
 
-- Based on current drain rate
-- Grades from **A (excellent)** to **E (poor)**
+            _state.clearDirty();
 
-#### 2) Estimated Time Left
-Example: `Left: 2d 5h`
+        } catch (e) {
+            Log.dbg("BatterySafeView.onUpdate EXCEPTION=" + e);
+        }
+    }
 
-- Estimated remaining battery life based on current drain trend
-- Calculated from battery percentage and trend
+    function onShow() as Void {
+        Log.dbg("BatterySafeView.onShow");
 
-#### 3) Charging Session
-Example: `Charging: 45m`
+        // Per sicurezza: quando la view torna in foreground,
+        // ristampiamo tutto una volta.
+        _state.needsFullRedraw = true;
+    }
 
-- Shows how long the device has been charging
-- Shows the last charging session duration after unplugging
+    function onHide() as Void {
+        Log.dbg("BatterySafeView.onHide");
+    }
 
----
+    function onEnterSleep() as Void {
+        _isLowPower = true;
+        WatchUi.WatchFace.onEnterSleep();
+    }
 
-## 🌙 Always-On Display (AOD)
+    function onExitSleep() as Void {
+        _isLowPower = false;
+        WatchUi.WatchFace.onExitSleep();
 
-BatterySafe includes a highly optimized AOD mode:
+        if (_didDrawAod) {
+            GraphicsManager.invalidateStatic();
+            _state.needsFullRedraw = true;
+            _didDrawAod = false;
+        }
 
-- Black background (AMOLED-friendly)
-- Only time and date rendered
-- Pixel shifting every 10 minutes (burn-in prevention)
-- No battery sampling/calculations in AOD
-- No dynamic strings in AOD
+        if (_dataManager != null) {
+            var nowMs = System.getTimer();
+            _dataManager.refreshBatteryIfNeeded(nowMs, true);
+        }
+        _state.dirtyTime = true;
+        _state.dirtyHeader = true;
+        _state.dirtyFooter = true;
+    }
 
----
+    function onPartialUpdate(dc as Graphics.Dc) {
 
-## 🎨 Customization
+        // AOD: sfondo nero SEMPRE (come Recovery) -> elimina residui
+        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
+        dc.clear();
+    }
 
-- Primary color
-- Accent color
-- 12h / 24h time format
-- Custom top battery field (Score / Left / Charging)
+    function updateAodShift(nowMs, s) {
 
-Settings are applied:
-- Only when changed
-- With static renderer invalidation
-- Without continuous polling
+        // cambia ogni 10 minuti
+        var slot = (nowMs / 600000).toNumber();
+        if (slot == _aodLastSlot) { return; }
 
----
+        _aodLastSlot = slot;
 
-## ⚡ Performance & Battery Optimization
+        var d = 2.0 * s; // ampiezza shift (max 2px * scale)
+        var m = slot % 4;
 
-### Key optimizations
+        if (m == 0) { _aodShiftX = 0;  _aodShiftY = 0; }
+        if (m == 1) { _aodShiftX = d;  _aodShiftY = 0; }
+        if (m == 2) { _aodShiftX = 0;  _aodShiftY = d; }
+        if (m == 3) { _aodShiftX = d;  _aodShiftY = d; }
+    }
 
-- **No sensors** (steps, HR, Body Battery, touch, stress, GPS)
-- Battery sampling only every **15 minutes**
-- Header refresh limited to **1 hour**
-- Charging state checked at most every **5 minutes** (throttled)
-- Partial redraws via split dirty flags:
-  - `dirtyTime` → redraw time area only
-  - `dirtyTopLines` → redraw the battery lines only when needed
-- Static graphics cached and redrawn only when needed
-- Renderers do **no calculations**: strings are built in the DataManager and only drawn in renderers
-- Minimal allocations during `onUpdate()`
+    function applySettingsIfNeeded() {
 
----
+        if (_lastSettingsVersion == SettingsBus.version) { return; }
+        _lastSettingsVersion = SettingsBus.version;
 
-## 🔍 Power Consumption Notes
+        Palette.load();
+        Prefs.load();
+        _state.lastMinuteKey = -1;
 
-BatterySafe is designed to be comparable to (or lower than) very simple digital watchfaces, especially compared to faces that:
-- constantly access sensors
-- show multiple live metrics
-- animate UI elements
+        GraphicsManager.invalidateStatic();
+        _state.dirtyTime = true;
+        _state.dirtyTopLines = true;
+        _state.dirtyHeader = true;
+        _state.dirtyMid = true;
+        _state.dirtyFooter = true;
+        _state.needsFullRedraw = true;
+    }
 
-> ⚠️ Actual battery impact depends heavily on device model, AOD settings, brightness, notifications, and installed apps.
-
----
-
-## 🧠 Architecture Overview
-
-- **State**: centralized cached data and strings
-- **DataManager**: calculations + throttled updates
-- **Renderers**: draw-only components (no formatting)
-- **View**: orchestrates refresh, redraw, and AOD handling
-
----
-
-## 📦 Target Audience
-
-- Users who prioritize battery life
-- AMOLED device owners using AOD
-- Long outdoor activities / travel
-- Minimalist + technical users
-- Developers interested in low-power Connect IQ patterns
-
----
-
-## 🚫 What BatterySafe Does NOT Do
-
-- No steps, heart rate, or fitness metrics
-- No animations
-- No sensor subscriptions
-- No unnecessary redraws
-
----
-
-## 📜 License
-
-Specify your license here (MIT, Apache 2.0, GPL, etc.)
+}
