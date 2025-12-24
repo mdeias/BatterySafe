@@ -30,6 +30,7 @@ class BatterySafeView extends WatchUi.WatchFace {
         _state = new State();
         _dataManager = new DataManager(_state);
         Palette.load();
+        Prefs.load();
     }
 
     function onLayout(dc as Dc) as Void {
@@ -200,21 +201,28 @@ class BatterySafeView extends WatchUi.WatchFace {
     }
 
     function applySettingsIfNeeded() {
-
+    
         if (_lastSettingsVersion == SettingsBus.version) { return; }
         _lastSettingsVersion = SettingsBus.version;
-
+    
         Palette.load();
         Prefs.load();
+    
+        // ✅ APPLICA LA MODALITÀ SCELTA DALL'UTENTE
+        _state.topLine2Mode = Prefs.top2Mode;
+    
         _state.lastMinuteKey = -1;
-
+    
         GraphicsManager.invalidateStatic();
+    
         _state.dirtyTime = true;
         _state.dirtyTopLines = true;
         _state.dirtyHeader = true;
         _state.dirtyMid = true;
         _state.dirtyFooter = true;
+    
         _state.needsFullRedraw = true;
     }
+
 
 }
