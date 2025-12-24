@@ -2,8 +2,8 @@
 
     <property id="UseMilitaryFormat" type="boolean">false</property>
 
-    <property id="primaryColor" type="number">0</property>
-    <property id="accentColor" type="number">3</property>
+    <property id="primaryColor" type="number">3</property>
+    <property id="accentColor" type="number">1</property>
     <property id="top2Mode" type="number">1</property>
     
 </properties>
