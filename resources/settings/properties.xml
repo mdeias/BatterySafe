@@ -1,0 +1,9 @@
+<properties xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
+
+    <property id="UseMilitaryFormat" type="boolean">false</property>
+
+    <property id="primaryColor" type="number">3</property>
+    <property id="accentColor" type="number">1</property>
+    <property id="top2Mode" type="number">1</property>
+    
+</properties>

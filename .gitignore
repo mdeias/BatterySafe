@@ -1,0 +1,23 @@
+# macOS system files
+.DS_Store
+
+# Garmin Connect IQ build artifacts
+bin/
+*.prg
+*.iq
+*.tmp
+*.log
+*.bak
+*.zip
+source/gen/
+source/internal-mir/
+source/mir/
+*.prg.debug.xml
+*.mbc
+*.mir
+*.mcgen
+*-settings.json
+# VS Code
+.vscode/
+developer_key
+source/Log.mc

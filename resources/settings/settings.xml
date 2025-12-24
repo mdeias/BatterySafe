@@ -1,0 +1,37 @@
+<settings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
+
+
+    <setting propertyKey="@Properties.UseMilitaryFormat" title="@Strings.MilitaryFormatTitle">
+        <settingConfig type="boolean" />
+    </setting>
+
+    <setting propertyKey="@Properties.primaryColor" title="Primary color">
+        <settingConfig type="list">
+                <listEntry value="0">Green</listEntry>
+                <listEntry value="1">Blue</listEntry>
+                <listEntry value="2">Red</listEntry>
+                <listEntry value="3">Orange</listEntry>
+                <listEntry value="4">Yellow</listEntry>
+        </settingConfig>
+    </setting>
+
+    <setting propertyKey="@Properties.accentColor" title="Accent color">
+        <settingConfig type="list">
+                <listEntry value="0">Green</listEntry>
+                <listEntry value="1">Blue</listEntry>
+                <listEntry value="2">Red</listEntry>
+                <listEntry value="3">Orange</listEntry>
+                <listEntry value="4">Yellow</listEntry>
+        </settingConfig>
+    </setting>
+
+    <setting propertyKey="@Properties.top2Mode" title="Top field">
+        <settingConfig type="list">
+            <listEntry value="1">Efficiency</listEntry>
+            <listEntry value="0">Time to empty</listEntry>
+            <listEntry value="2">Charge duration</listEntry>
+        </settingConfig>
+    </setting>
+
+
+</settings>
