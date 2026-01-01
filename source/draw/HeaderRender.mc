@@ -150,9 +150,9 @@ class HeaderRenderer {
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
         dc.fillRectangle(
             0,
-            _topY - (8.0 * s),
+            _topY - (3.0 * s),
             _w,
-            (35.0 * s)
+            (32.0 * s)
         );
 
         var text = state.headerStr;

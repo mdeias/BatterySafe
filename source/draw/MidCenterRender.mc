@@ -174,7 +174,7 @@ class MidCenterRenderer {
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
         dc.fillRectangle(
             45 * s,
-            _dateY - (3.0 * s),
+            _dateY + 4 * s,
             _w - 87.0 * s,
             (50.0 * s)
         );
@@ -182,7 +182,7 @@ class MidCenterRenderer {
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
         dc.fillRectangle(
             75 * s,
-            _dateY + (72.0 * s),
+            _dateY + (78.0 * s),
             _w - 117.0 * s,
             (20.0 * s)
         );
