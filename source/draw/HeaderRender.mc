@@ -60,8 +60,8 @@ class HeaderRenderer {
 
     function layout(dc as Graphics.Dc, s) {
 
-        _fontTop     = FontManager.robotoBold(26.0 * s);
-        _fontTagline = FontManager.robotoBold(30.0 * s);
+        _fontTop     = FontManager.boldText(24.0 * s);
+        _fontTagline = FontManager.boldText(26.0 * s);
 
         _w  = dc.getWidth();
         _cx = _w / 2.0;
@@ -70,7 +70,7 @@ class HeaderRenderer {
         _clearH = 120.0 * s;
 
         // text positions
-        _topY     = 64.0 * s;
+        _topY     = 58.0 * s;
         _taglineY = 88.0 * s;
         _markerY  = _taglineY;
 
@@ -150,9 +150,9 @@ class HeaderRenderer {
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
         dc.fillRectangle(
             0,
-            _topY - (8.0 * s),
+            _topY - (3.0 * s),
             _w,
-            (35.0 * s)
+            (32.0 * s)
         );
 
         var text = state.headerStr;

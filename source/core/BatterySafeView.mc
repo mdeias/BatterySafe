@@ -142,9 +142,7 @@ class BatterySafeView extends WatchUi.WatchFace {
 
     function onShow() as Void {
         Log.dbg("BatterySafeView.onShow");
-
-        // Per sicurezza: quando la view torna in foreground,
-        // ristampiamo tutto una volta.
+        GraphicsManager.invalidateStatic();
         _state.needsFullRedraw = true;
     }
 
@@ -160,21 +158,33 @@ class BatterySafeView extends WatchUi.WatchFace {
     function onExitSleep() as Void {
         _isLowPower = false;
         WatchUi.WatchFace.onExitSleep();
-
-        if (_didDrawAod) {
-            GraphicsManager.invalidateStatic();
-            _state.needsFullRedraw = true;
-            _didDrawAod = false;
-        }
-
+    
+        // After sleep the framebuffer can be cleared even without AOD.
+        // Force static re-draw + full redraw.
+        GraphicsManager.invalidateStatic();
+        _state.needsFullRedraw = true;
+        _didDrawAod = false;
+    
+        // Refresh battery data only if a new sample is actually needed
         if (_dataManager != null) {
             var nowMs = System.getTimer();
-            _dataManager.refreshBatteryIfNeeded(nowMs, true);
+    
+            var needBattery = (_state.lastBatteryTs == 0) ||
+                              ((nowMs - _state.lastBatteryTs) >= _dataManager.getBatteryRefreshMs());
+    
+            if (needBattery) {
+                _dataManager.refreshBatteryIfNeeded(nowMs, false);
+            }
         }
+    
+        // Mark sections dirty (safe even with full redraw)
         _state.dirtyTime = true;
+        _state.dirtyTopLines = true;
         _state.dirtyHeader = true;
+        _state.dirtyMid = true;
         _state.dirtyFooter = true;
     }
+
 
     function onPartialUpdate(dc as Graphics.Dc) {
 

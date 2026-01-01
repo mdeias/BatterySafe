@@ -4,16 +4,28 @@ using Toybox.Math;
 module FontManager {
 
     const ROBOTO_BOLD_FACES = [
+        "RobotoCondensedBold"
+    ];
+
+    const BIONIC_NUM_FACES = [
         "BionicBold",
         "RobotoCondensedBold"
     ];
 
     var _cache = {};
 
-    function robotoBold(size) {
+    function boldNum(size) {
+        return _get("n", size, BIONIC_NUM_FACES);
+    }
+
+    function boldText(size) {
+        return _get("t", size, ROBOTO_BOLD_FACES);
+    }
+
+    function _get(prefix, size, faces) {
 
         var s = Math.round(size);
-        var key = "b" + s;
+        var key = prefix + s;
 
         if (_cache.hasKey(key)) {
             return _cache[key];
@@ -24,7 +36,7 @@ module FontManager {
         if (G has :getVectorFont) {
             try {
                 font = G.getVectorFont({
-                    :face => ROBOTO_BOLD_FACES,
+                    :face => faces,
                     :size => s
                 });
             } catch (e) {
@@ -43,5 +55,10 @@ module FontManager {
 
         _cache[key] = font;
         return font;
+    }
+
+    // (opzionale) tieni robotoBold per compatibilità
+    function robotoBold(size) {
+        return boldText(size);
     }
 }

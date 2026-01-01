@@ -9,7 +9,7 @@ class FooterRenderer {
     var _fontDash;
     var _fontPipe;
 
-    const DASH_TEXT = "--------------------";
+    const DASH_TEXT = "-----------------";
     const BATT_LABEL = "Batt";
     const PIPE_TEXT = "|";
 
@@ -61,9 +61,9 @@ class FooterRenderer {
 
     function layout(dc as Graphics.Dc, s) {
 
-        _fontMid  = FontManager.robotoBold(34.0 * s);
-        _fontDash = FontManager.robotoBold(42.0 * s);
-        _fontPipe = FontManager.robotoBold(40.0 * s);
+        _fontMid  = FontManager.boldText(30.0 * s);
+        _fontDash = FontManager.boldText(42.0 * s);
+        _fontPipe = FontManager.boldText(38.0 * s);
 
         _w  = dc.getWidth();
         _cx = _w / 2.0;
@@ -77,7 +77,7 @@ class FooterRenderer {
         _dashTextY = _dashY + 14.0 * s;
 
         // battery row
-        _battY  = _dashY + 42.0 * s;
+        _battY  = _dashY + 44.0 * s;
         _battLX = _cx - 8.0 * s;
         _battRX = _cx + 8.0 * s;
 
