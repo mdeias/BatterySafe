@@ -7,6 +7,7 @@ class MidCenterRenderer {
     var _fontMid;
     var _fontSmall;
     var _fontPip;
+    var _fontDate;
 
     const DAYS = [ "Mo","Tu","We","Th","Fr","Sa","Su" ];
 
@@ -44,6 +45,7 @@ class MidCenterRenderer {
         _fontMid   = null;
         _fontSmall = null;
         _fontPip   = null;
+        _fontDate  = null;
 
         _w = 0;
         _cx = 0;
@@ -74,9 +76,10 @@ class MidCenterRenderer {
 
     function layout(dc as Graphics.Dc, s) {
 
-        _fontMid   = FontManager.robotoBold(30.0 * s);
-        _fontSmall = FontManager.robotoBold(22.0 * s);
-        _fontPip   = FontManager.robotoBold(70.0 * s);
+        _fontMid   = FontManager.boldText(28.0 * s);
+        _fontSmall = FontManager.boldText(22.0 * s);
+        _fontDate = FontManager.boldText(32.0 * s);
+        _fontPip   = FontManager.boldText(55.0 * s);
 
         _w  = dc.getWidth();
         _cx = _w / 2.0;
@@ -94,7 +97,7 @@ class MidCenterRenderer {
         _firstX = _cx - (3 * (_barW + _barSp));
 
         // date e labels
-        _dateY = _barsY - 48.0 * s;
+        _dateY = _barsY - 55.0 * s;
         _daysY = _barsY + 22.0 * s;
 
         // cap
@@ -135,7 +138,7 @@ class MidCenterRenderer {
         dc.setColor(Palette.PRIMARY, Graphics.COLOR_TRANSPARENT);
         dc.drawText(
             _structX,
-            _structY - 57.0 * s, // mantengo il tuo offset originale
+            _structY - 47.0 * s, // mantengo il tuo offset originale
             _fontPip,
             "|_",
             Graphics.TEXT_JUSTIFY_LEFT
@@ -171,7 +174,7 @@ class MidCenterRenderer {
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
         dc.fillRectangle(
             45 * s,
-            _dateY - (3.0 * s),
+            _dateY + 4 * s,
             _w - 87.0 * s,
             (50.0 * s)
         );
@@ -179,7 +182,7 @@ class MidCenterRenderer {
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
         dc.fillRectangle(
             75 * s,
-            _dateY + (72.0 * s),
+            _dateY + (78.0 * s),
             _w - 117.0 * s,
             (20.0 * s)
         );
@@ -189,7 +192,7 @@ class MidCenterRenderer {
         dc.drawText(
             _cx,
             _dateY,
-            _fontMid,
+            _fontDate,
             dateStr,
             Graphics.TEXT_JUSTIFY_CENTER
         );
@@ -236,7 +239,7 @@ class MidCenterRenderer {
         dc.setColor(Palette.ACCENT, Graphics.COLOR_TRANSPARENT);
         dc.drawText(
             _dayLabelX,
-            _dateY,
+            _dateY + 12 * s,
             _fontMid,
             "Day",
             Graphics.TEXT_JUSTIFY_RIGHT

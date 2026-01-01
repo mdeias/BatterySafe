@@ -8,7 +8,7 @@ class TopCenterRenderer {
     var _fontTop;
     var _fontMid;
     var _fontPip;
-    const DASH_TEXT = "-------------";
+    const DASH_TEXT = "-----------";
     const PIPE_TEXT = "|";
 
     // Cached geometry
@@ -66,10 +66,10 @@ class TopCenterRenderer {
 
     function layout(dc as Graphics.Dc, s) {
 
-        _fontTime = FontManager.robotoBold(140.0 * s);
-        _fontTop  = FontManager.robotoBold(26.0  * s);
-        _fontMid  = FontManager.robotoBold(28.0  * s);
-        _fontPip  = FontManager.robotoBold(110.0 * s);
+        _fontTime = FontManager.boldNum(140.0 * s);
+        _fontTop  = FontManager.boldText(26.0  * s);
+        _fontMid  = FontManager.boldText(28.0  * s);
+        _fontPip  = FontManager.boldText(94.0 * s);
 
         _w  = dc.getWidth();
         _cx = _w / 2.0;
@@ -88,7 +88,7 @@ class TopCenterRenderer {
         _line2Y    = _timeY + 78.0 * s;
 
         _pipeX = _w - 30.0 * s;
-        _pipeY = _timeY + 18.0 * s;
+        _pipeY = _timeY + 20.0 * s;
 
         _staticDrawn = false;
     }
