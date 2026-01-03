@@ -68,7 +68,6 @@ class State {
     // Dirty flags
     // ----------------------------
     var dirtyHeader;
-    var dirtyTop;       // Eliminare 
     var dirtyTime;      // solo ora (top time)
     var dirtyTopLines;  // line1 + line2 + dash
     var dirtyMid;
@@ -120,7 +119,6 @@ class State {
 
         // first draw
         dirtyHeader     = true;
-        dirtyTop        = true;
         dirtyTime       = true; 
         dirtyTopLines   = true;
         dirtyMid        = true;
@@ -130,9 +128,8 @@ class State {
 
     function clearDirty() {
         dirtyHeader = false;
-        dirtyTop    = false; // Eliminare
-        dirtyTime     = true; 
-        dirtyTopLines = true;
+        dirtyTime     = false; 
+        dirtyTopLines = false;
         dirtyMid    = false;
         dirtyFooter = false;
     }
