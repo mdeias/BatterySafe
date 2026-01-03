@@ -31,6 +31,7 @@ class BatterySafeView extends WatchUi.WatchFace {
         _dataManager = new DataManager(_state);
         Palette.load();
         Prefs.load();
+        _state.topLine2Mode = Prefs.top2Mode;
     }
 
     function onLayout(dc as Dc) as Void {
@@ -93,6 +94,16 @@ class BatterySafeView extends WatchUi.WatchFace {
                     _state.timeStr = hh.format("%02d") + ":" + ct.min.format("%02d");
 
                 _state.dirtyTime = true;
+            }
+
+            // Se non devo ridisegnare nulla, esco
+            if (!_state.needsFullRedraw &&
+                !_state.dirtyHeader &&
+                !_state.dirtyMid &&
+                !_state.dirtyFooter &&
+                !_state.dirtyTime &&
+                !_state.dirtyTopLines) {
+                return;
             }
 
             // -----------------------------
@@ -187,11 +198,12 @@ class BatterySafeView extends WatchUi.WatchFace {
 
 
     function onPartialUpdate(dc as Graphics.Dc) {
+        if (!_isLowPower) { return; }
 
-        // AOD: sfondo nero SEMPRE (come Recovery) -> elimina residui
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
         dc.clear();
     }
+
 
     function updateAodShift(nowMs, s) {
 

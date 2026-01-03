@@ -279,11 +279,11 @@ class DataManager {
         if (mode == TOP2_CHG) {
 
             if (_state.charging && _state.chargeStartTs != 0 && nowMs > _state.chargeStartTs) {
-                out = "Charging: " + _fmtDH(nowMs - _state.chargeStartTs);
+                out = "Crg: " + _fmtDH(nowMs - _state.chargeStartTs);
             } else if (_state.lastChargeDurMs != 0) {
-                out = "Charging: " + _fmtDH(_state.lastChargeDurMs);
+                out = "Crg: " + _fmtDH(_state.lastChargeDurMs);
             } else {
-                out = "Charging: --";
+                out = "Crg: --";
             }
 
         } else {
@@ -291,7 +291,7 @@ class DataManager {
             var rate = _state.lastRatePerHour; // Float
             if (rate == null) {
 
-                out = (mode == TOP2_TTE) ? "Remaining: --" : "Score: --";
+                out = (mode == TOP2_TTE) ? "L: --" : "Score: --";
 
             } else {
 
@@ -324,11 +324,11 @@ class DataManager {
     }
 
     function formatTte(rate) {
-        if (rate >= 0) { return "Left: --"; }
-        if (_state.devBattery == null) { return "Left: --"; }
+        if (rate >= 0) { return "L: --"; }
+        if (_state.devBattery == null) { return "L: --"; }
 
         var cons = -rate; // %/h
-        if (cons <= 0) { return "Left: --"; }
+        if (cons <= 0) { return "L: --"; }
 
         var hours = (_state.devBattery.toFloat() / cons);
         var totalMin = (hours * 60.0).toNumber();
@@ -336,7 +336,7 @@ class DataManager {
         var d = (totalMin / (60 * 24)).toNumber();
         var h = ((totalMin - d * 60 * 24) / 60).toNumber();
 
-        return "Left: " + d.format("%d") + "d " + h.format("%d") + "h";
+        return "L: " + d.format("%d") + "d " + h.format("%d") + "h";
     }
 
     // ----------------------------
