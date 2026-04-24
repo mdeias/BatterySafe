@@ -15,7 +15,7 @@ Non usa sensori attivi (no HR, no GPS, no accelerometro). Solo batteria e orolog
 - **Linguaggio**: Monkey C
 - **SDK**: Connect IQ ≥ 5.2.0
 - **Target devices**: 29 dispositivi Garmin fascia premium (Fenix 7/8, Epix 2, FR 265/965, MARQ2, ecc.)
-- **Device di default** per build/test rapidi: `epix2`
+- **Device di default** per build/test rapidi: `epix2pro42mm`
 - **IDE di sviluppo**: VS Code con Monkey C extension
 
 ## Architettura (inviolabile)
@@ -59,20 +59,17 @@ Se una modifica richiede logica in un renderer o accesso system in State, fermat
 
 ## Comandi
 
-> TODO: Matteo verificherà e completerà questa sezione con i comandi esatti che usa normalmente (developer key path, wrapper eventuali, alias). Non eseguire build/run prima che questa sezione sia completa.
-
-Stub dei comandi attesi (da confermare):
-
 ```bash
-# Build per device di default (epix2)
-monkeyc -d epix2 -f monkey.jungle -o bin/BatterySafe-epix2.prg -y <developer_key>
+# Build per device di default (epix2pro42mm)
+./build.sh
 
-# Run nel simulatore
-monkeydo bin/BatterySafe-epix2.prg epix2
+# Run nel simulatore Connect IQ
+./run.sh
 
-# Build release package per Connect IQ Store
-monkeyc -e -f monkey.jungle -o bin/BatterySafe.iq -y <developer_key>
+# Build release package per Connect IQ Store (TODO: release.sh — issue separata)
 ```
+
+Gli script `build.sh` e `run.sh` nella repo root gestiscono automaticamente la scoperta della developer key (`$GARMIN_DEVELOPER_KEY` → `~/Library/Application Support/Garmin/ConnectIQ/developer_key.der`) e il percorso dell'output (`bin/BatterySafe-epix2pro42mm.prg`). Entrambi funzionano da qualsiasi directory corrente.
 
 ## Git workflow
 
