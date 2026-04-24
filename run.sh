@@ -15,4 +15,25 @@ if [ ! -f "$PRG" ]; then
 fi
 
 echo "Launching $PRG on $DEVICE..."
-monkeydo "$PRG" "$DEVICE"
+
+STDERR_FILE=$(mktemp)
+set +e
+monkeydo "$PRG" "$DEVICE" 2>"$STDERR_FILE"
+EXIT=$?
+set -e
+
+cat "$STDERR_FILE" >&2
+
+if [ $EXIT -ne 0 ] && grep -qi "unable to connect to simulator" "$STDERR_FILE"; then
+    echo "" >&2
+    echo "Error: Connect IQ simulator is not running." >&2
+    echo "" >&2
+    echo "Start the simulator first, then re-run ./run.sh:" >&2
+    echo "  Option 1: Open the Connect IQ companion app and launch the simulator from there." >&2
+    echo "  Option 2: In VS Code, press Cmd+Shift+P → 'Monkey C: Run App'." >&2
+    echo "" >&2
+    echo "Once the simulator is open, re-run: ./run.sh" >&2
+fi
+
+rm -f "$STDERR_FILE"
+exit $EXIT
