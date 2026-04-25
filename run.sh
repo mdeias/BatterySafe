@@ -30,6 +30,8 @@ if ! pgrep -f "ConnectIQ.app/Contents/MacOS" > /dev/null 2>&1; then
             exit 1
         fi
     done
+    # Process exists before the simulator is ready to accept connections; give it a moment.
+    sleep 5
     echo "Simulator ready."
 fi
 
