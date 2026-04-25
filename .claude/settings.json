@@ -41,6 +41,8 @@
       "Bash(monkeyc *)",
       "Bash(monkeydo *)",
       "Bash(mkdir *)",
+      "Bash(osascript -e *)",
+      "Bash(open -a ConnectIQ)",
       "Edit(.claude/skills/**)",
       "Edit(.claude/commands/**)",
       "Edit(.claude/LESSONS.md)",
