@@ -14,6 +14,25 @@ if [ ! -f "$PRG" ]; then
     exit 1
 fi
 
+if ! pgrep -f "ConnectIQ" > /dev/null 2>&1; then
+    echo "Connect IQ simulator not running — launching..."
+    open -a ConnectIQ
+
+    WAIT=0
+    TIMEOUT=15
+    until pgrep -f "ConnectIQ" > /dev/null 2>&1; do
+        sleep 1
+        WAIT=$((WAIT + 1))
+        if [ $WAIT -ge $TIMEOUT ]; then
+            echo "" >&2
+            echo "Error: Connect IQ simulator did not start within ${TIMEOUT} seconds." >&2
+            echo "Try launching it manually, then re-run: ./run.sh" >&2
+            exit 1
+        fi
+    done
+    echo "Simulator ready."
+fi
+
 echo "Launching $PRG on $DEVICE..."
 
 STDERR_FILE=$(mktemp)
