@@ -14,13 +14,13 @@ if [ ! -f "$PRG" ]; then
     exit 1
 fi
 
-if ! pgrep -f "ConnectIQ" > /dev/null 2>&1; then
+if ! pgrep -f "ConnectIQ.app/Contents/MacOS" > /dev/null 2>&1; then
     echo "Connect IQ simulator not running — launching..."
     open -a ConnectIQ
 
     WAIT=0
     TIMEOUT=15
-    until pgrep -f "ConnectIQ" > /dev/null 2>&1; do
+    until pgrep -f "ConnectIQ.app/Contents/MacOS" > /dev/null 2>&1; do
         sleep 1
         WAIT=$((WAIT + 1))
         if [ $WAIT -ge $TIMEOUT ]; then
