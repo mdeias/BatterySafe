@@ -1,3 +1,4 @@
+using Toybox.Application;
 using Toybox.System;
 using Toybox.Time;
 using Toybox.Math;
@@ -17,6 +18,19 @@ class DataManager {
 
     function initialize(state as State) {
         _state = state;
+
+        // Restore lastChargeEndTs across reloads: stored as epoch (seconds),
+        // converted back to System.getTimer() units on resume.
+        try {
+            var storedEpoch = Application.Storage.getValue("lastChargeEndEpoch");
+            if (storedEpoch != null) {
+                var nowMs = System.getTimer();
+                var elapsedMs = (Time.now().value() - storedEpoch) * 1000;
+                if (elapsedMs > 0 && elapsedMs < 20 * 24 * 3600 * 1000) {
+                    _state.lastChargeEndTs = nowMs - elapsedMs;
+                }
+            }
+        } catch(e) {}
 
         // Date iniziale
         refreshDateIfNeeded();
@@ -162,6 +176,7 @@ class DataManager {
         } else {
             // esce da charging (unplug)
             _state.lastChargeEndTs = nowMs;
+            Application.Storage.setValue("lastChargeEndEpoch", Time.now().value());
 
             if (_state.chargeStartTs != 0 && nowMs > _state.chargeStartTs) {
                 _state.lastChargeDurMs = nowMs - _state.chargeStartTs;
