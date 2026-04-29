@@ -90,7 +90,7 @@ class State {
         devBattery        = null;
         devBatteryStr     = BATT_FALLBACK;
         hasRealDevBattery = false;
-        charging          = false;
+        charging          = null;
 
         // tracking
         lastBattSamplePct = null;
