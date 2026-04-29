@@ -21,6 +21,7 @@ class State {
     var lastDateKey;       // yyyymmdd
     var dateStr;           // MAI null
     var weekdayIndex;      // 0..6
+    var lastDateCheckTs;   // ms — throttle for Time.Gregorian.info()
 
     // ----------------------------
     // Battery core
@@ -81,9 +82,10 @@ class State {
         lastMinuteKey = -1;
         timeStr       = TIME_FALLBACK;
 
-        lastDateKey   = 0;
-        dateStr       = DATE_FALLBACK;
-        weekdayIndex  = 0;
+        lastDateKey      = 0;
+        dateStr          = DATE_FALLBACK;
+        weekdayIndex     = 0;
+        lastDateCheckTs  = 0;
 
         // battery core
         lastBatteryTs     = 0;
