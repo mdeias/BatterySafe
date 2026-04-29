@@ -368,9 +368,9 @@ class DataManager {
         min = min % 60;
 
         if (day > 0) {
-            return day.format("%dd") + " " + hr.format("%dh");
+            return day.format("%d") + "d " + hr.format("%d") + "h";
         }
-        return hr.format("%dh") + " " + min.format("%dm");
+        return hr.format("%d") + "h " + min.format("%d") + "m";
     }
 
     function refreshChargingIfNeeded(nowMs) {
