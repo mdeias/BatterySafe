@@ -9,6 +9,7 @@ class DataManager {
     const BAT_REFRESH_MS    = 15 * 60 * 1000; // 15 min (sampling batteria + trend)
     const HEADER_REFRESH_MS = 60 * 60 * 1000; // 60 min (Last charge elapsed)
     const CHG_REFRESH_MS = 5 * 60 * 1000; // 5 min (charging state)
+    const DATE_REFRESH_MS = 60 * 60 * 1000; // 1h baseline; midnight window forces extra checks
     // Top2 mode (decidi tu dove settarlo: settings o default nello State)
     const TOP2_TTE = 0;
     const TOP2_EFF = 1;
@@ -32,15 +33,15 @@ class DataManager {
             }
         } catch(e) {}
 
-        // Date iniziale
-        refreshDateIfNeeded();
+        // Date iniziale (forced: lastDateCheckTs == 0)
+        refreshDateIfNeeded(System.getTimer());
     }
 
     public function getBatteryRefreshMs() { return BAT_REFRESH_MS; }
 
     // chiamala ad ogni onUpdate (economica)
     function refreshFast(nowMs) {
-        refreshDateIfNeeded();
+        refreshDateIfNeeded(nowMs);
 
         // 1) Charging state ogni 5 minuti (low cost)
         refreshChargingIfNeeded(nowMs);
@@ -81,6 +82,10 @@ class DataManager {
             }
         } catch(e) { }
 
+        // Mark charging as just-checked so refreshChargingIfNeeded skips its
+        // next tick — the stats read above already covers it.
+        _state.lastChargingCheckTs = nowMs;
+
         // ----------------------------
         // 2) Charging transitions (inizio/fine carica)
         // ----------------------------
@@ -110,7 +115,24 @@ class DataManager {
     // ----------------------------
     // DATE + WEEKDAY (solo cambio giorno)
     // ----------------------------
-    function refreshDateIfNeeded() {
+    function refreshDateIfNeeded(nowMs) {
+
+        // Throttle: skip Time.Gregorian.info() unless first call,
+        // ≥ DATE_REFRESH_MS elapsed, or we are in the midnight window.
+        if (_state.lastDateCheckTs != 0 &&
+            (nowMs - _state.lastDateCheckTs) < DATE_REFRESH_MS) {
+
+            var ct = System.getClockTime();
+            var inMidnightWindow =
+                (ct.hour == 23 && ct.min >= 58) ||
+                (ct.hour == 0  && ct.min <= 2);
+
+            if (!inMidnightWindow) {
+                return;
+            }
+        }
+
+        _state.lastDateCheckTs = nowMs;
 
         var dinfo = Time.Gregorian.info(Time.now(), Time.FORMAT_SHORT);
 
