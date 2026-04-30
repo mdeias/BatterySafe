@@ -1,0 +1,55 @@
+{
+  "permissions": {
+    "defaultMode": "default",
+
+    "deny": [
+      "Bash(git push --force *)",
+      "Bash(git push -f *)",
+      "Bash(git push * main*)",
+      "Bash(git push * master*)",
+      "Bash(git push origin main)",
+      "Bash(git push origin master)",
+      "Bash(git checkout main)",
+      "Bash(git checkout master)",
+      "Bash(git reset --hard origin/*)",
+      "Bash(git rebase * main*)",
+      "Bash(git rebase * master*)",
+      "Edit(.claude/settings.json)",
+      "Write(.claude/settings.json)",
+      "Edit(.env*)",
+      "Read(.env*)",
+      "Write(.env*)",
+      "Edit(developer_key*)",
+      "Read(developer_key*)"
+    ],
+
+    "ask": [
+      "Edit(manifest.xml)",
+      "Write(manifest.xml)",
+      "Edit(monkey.jungle)",
+      "Write(monkey.jungle)",
+      "Edit(resources/**)",
+      "Write(resources/**)",
+      "Bash(rm *)",
+      "Bash(rmdir *)",
+      "Bash(git reset *)",
+      "Bash(git revert *)"
+    ],
+
+    "allow": [
+      "Bash(git *)",
+      "Bash(monkeyc *)",
+      "Bash(monkeydo *)",
+      "Bash(mkdir *)",
+      "Bash(osascript -e *)",
+      "Bash(open -a ConnectIQ)",
+      "Edit(.claude/skills/**)",
+      "Edit(.claude/commands/**)",
+      "Edit(.claude/LESSONS.md)",
+      "Write(.claude/skills/**)",
+      "Write(.claude/commands/**)",
+      "Write(.claude/LESSONS.md)",
+      "mcp__github__*"
+    ]
+  }
+}
