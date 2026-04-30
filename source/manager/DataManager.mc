@@ -1,3 +1,4 @@
+using Toybox.Application;
 using Toybox.System;
 using Toybox.Time;
 using Toybox.Math;
@@ -8,6 +9,7 @@ class DataManager {
     const BAT_REFRESH_MS    = 15 * 60 * 1000; // 15 min (sampling batteria + trend)
     const HEADER_REFRESH_MS = 60 * 60 * 1000; // 60 min (Last charge elapsed)
     const CHG_REFRESH_MS = 5 * 60 * 1000; // 5 min (charging state)
+    const DATE_REFRESH_MS = 60 * 60 * 1000; // 1h baseline; midnight window forces extra checks
     // Top2 mode (decidi tu dove settarlo: settings o default nello State)
     const TOP2_TTE = 0;
     const TOP2_EFF = 1;
@@ -18,15 +20,28 @@ class DataManager {
     function initialize(state as State) {
         _state = state;
 
-        // Date iniziale
-        refreshDateIfNeeded();
+        // Restore lastChargeEndTs across reloads: stored as epoch (seconds),
+        // converted back to System.getTimer() units on resume.
+        try {
+            var storedEpoch = Application.Storage.getValue("lastChargeEndEpoch");
+            if (storedEpoch != null) {
+                var nowMs = System.getTimer();
+                var elapsedMs = (Time.now().value() - storedEpoch) * 1000;
+                if (elapsedMs > 0 && elapsedMs < 20 * 24 * 3600 * 1000) {
+                    _state.lastChargeEndTs = nowMs - elapsedMs;
+                }
+            }
+        } catch(e) {}
+
+        // Date iniziale (forced: lastDateCheckTs == 0)
+        refreshDateIfNeeded(System.getTimer());
     }
 
     public function getBatteryRefreshMs() { return BAT_REFRESH_MS; }
 
     // chiamala ad ogni onUpdate (economica)
     function refreshFast(nowMs) {
-        refreshDateIfNeeded();
+        refreshDateIfNeeded(nowMs);
 
         // 1) Charging state ogni 5 minuti (low cost)
         refreshChargingIfNeeded(nowMs);
@@ -67,6 +82,10 @@ class DataManager {
             }
         } catch(e) { }
 
+        // Mark charging as just-checked so refreshChargingIfNeeded skips its
+        // next tick — the stats read above already covers it.
+        _state.lastChargingCheckTs = nowMs;
+
         // ----------------------------
         // 2) Charging transitions (inizio/fine carica)
         // ----------------------------
@@ -96,7 +115,24 @@ class DataManager {
     // ----------------------------
     // DATE + WEEKDAY (solo cambio giorno)
     // ----------------------------
-    function refreshDateIfNeeded() {
+    function refreshDateIfNeeded(nowMs) {
+
+        // Throttle: skip Time.Gregorian.info() unless first call,
+        // ≥ DATE_REFRESH_MS elapsed, or we are in the midnight window.
+        if (_state.lastDateCheckTs != 0 &&
+            (nowMs - _state.lastDateCheckTs) < DATE_REFRESH_MS) {
+
+            var ct = System.getClockTime();
+            var inMidnightWindow =
+                (ct.hour == 23 && ct.min >= 58) ||
+                (ct.hour == 0  && ct.min <= 2);
+
+            if (!inMidnightWindow) {
+                return;
+            }
+        }
+
+        _state.lastDateCheckTs = nowMs;
 
         var dinfo = Time.Gregorian.info(Time.now(), Time.FORMAT_SHORT);
 
@@ -162,6 +198,7 @@ class DataManager {
         } else {
             // esce da charging (unplug)
             _state.lastChargeEndTs = nowMs;
+            Application.Storage.setValue("lastChargeEndEpoch", Time.now().value());
 
             if (_state.chargeStartTs != 0 && nowMs > _state.chargeStartTs) {
                 _state.lastChargeDurMs = nowMs - _state.chargeStartTs;
@@ -353,9 +390,9 @@ class DataManager {
         min = min % 60;
 
         if (day > 0) {
-            return day.format("%dd") + " " + hr.format("%dh");
+            return day.format("%d") + "d " + hr.format("%d") + "h";
         }
-        return hr.format("%dh") + " " + min.format("%dm");
+        return hr.format("%d") + "h " + min.format("%d") + "m";
     }
 
     function refreshChargingIfNeeded(nowMs) {
