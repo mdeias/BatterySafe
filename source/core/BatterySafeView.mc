@@ -198,10 +198,9 @@ class BatterySafeView extends WatchUi.WatchFace {
 
 
     function onPartialUpdate(dc as Graphics.Dc) {
-        if (!_isLowPower) { return; }
-
-        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
-        dc.clear();
+        // No-op: BatterySafe does not animate sub-minute content, so partial
+        // ticks have nothing to draw. Avoiding dc.clear() here also leaves
+        // OS overlays (e.g. the flashlight intensity slider) intact.
     }
 
 
