@@ -113,7 +113,11 @@ class BatterySafeView extends WatchUi.WatchFace {
             if (_state.needsFullRedraw) {
 
                 dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
-                dc.clear();
+                // Diagnostic clip for issue #31: avoid clearing the leftmost
+                // strip where OS flashlight intensity slider is rendered.
+                // Section drawStatic calls will repaint this area normally.
+                var sFull = GraphicsManager.getScale(dc);
+                dc.fillRectangle(40 * sFull, 0, dc.getWidth() - 40 * sFull, dc.getHeight());
 
                 GraphicsManager.drawHeader(dc, _state);
                 GraphicsManager.drawTopCenter(dc, _state);
