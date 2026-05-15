@@ -46,7 +46,11 @@ class BatterySafeView extends WatchUi.WatchFace {
     function onUpdate(dc as Dc) as Void {
 
         try {
-            if (_isLowPower) {
+            // Apply settings before branching so that toggling
+            // extremePowerSaver at runtime takes effect immediately.
+            applySettingsIfNeeded();
+
+            if (_isLowPower || Prefs.extremePowerSaver) {
                 _didDrawAod = true;
                 var s = GraphicsManager.getScale(dc);
                 var nowMs = System.getTimer();
@@ -57,7 +61,6 @@ class BatterySafeView extends WatchUi.WatchFace {
                 GraphicsManager.drawAodDate(dc, _state, _aodShiftX, _aodShiftY);
                 return;
             }
-            applySettingsIfNeeded();
             var nowMs = System.getTimer();
             // -----------------------------
             // Refresh dati (scheduler)
