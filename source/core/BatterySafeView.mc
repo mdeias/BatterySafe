@@ -131,6 +131,18 @@ class BatterySafeView extends WatchUi.WatchFace {
             // -----------------------------
             // PARTIAL REDRAW (solo sezioni dirty)
             // -----------------------------
+
+            // Diagnostic for #31 (hypothesis H7): the Dc can carry the
+            // current screen content, OS flashlight slider included. A
+            // partial redraw would present those stale slider pixels back
+            // to the screen while the OS composites its live slider on
+            // top, producing the ghost duplicate. Black out the left-edge
+            // strip where the slider lives (no watchface content there)
+            // before drawing the dirty sections.
+            var scale = GraphicsManager.getScale(dc);
+            dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
+            dc.fillRectangle(0, 120.0 * scale, 60.0 * scale, 190.0 * scale);
+
             if (_state.dirtyHeader) {
                 GraphicsManager.drawHeader(dc, _state);
             }
