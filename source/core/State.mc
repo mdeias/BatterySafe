@@ -39,9 +39,9 @@ class State {
     var lastBattSampleTs;  // ms
     var lastRatePerHour;   // Float (può essere null)  <-- NECESSARIA
 
-    var chargeStartTs;     // ms (quando entra charging=true)
-    var lastChargeEndTs;   // ms (quando esce charging=false)
-    var lastChargeDurMs;   // ms (durata ultima sessione di carica)
+    var chargeStartTs;       // ms (quando entra charging=true)
+    var lastChargeEndEpoch;  // epoch sec (fine ultima carica; 0 = sconosciuto)
+    var lastChargeDurMs;     // ms (durata ultima sessione di carica)
 
     // Header refresh throttle
     var lastHeaderTs;      // ms
@@ -99,9 +99,9 @@ class State {
         lastBattSampleTs  = 0;
         lastRatePerHour   = null;
 
-        chargeStartTs     = 0;
-        lastChargeEndTs   = 0;
-        lastChargeDurMs   = 0;
+        chargeStartTs      = 0;
+        lastChargeEndEpoch = 0;
+        lastChargeDurMs    = 0;
 
         lastHeaderTs      = 0;
         lastChargingCheckTs = 0;
