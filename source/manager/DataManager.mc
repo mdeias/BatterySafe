@@ -20,14 +20,16 @@ class DataManager {
     function initialize(state as State) {
         _state = state;
 
-        // Restore last charge end across reloads. Kept as epoch seconds end
-        // to end: no System.getTimer() conversion, so no 32-bit ms overflow
-        // and no timer-wrap issues for long elapsed times.
+        // Restore lastChargeEndTs across reloads: stored as epoch (seconds),
+        // converted back to System.getTimer() units on resume.
         try {
             var storedEpoch = Application.Storage.getValue("lastChargeEndEpoch");
-            if (storedEpoch != null && storedEpoch > 0 &&
-                storedEpoch <= Time.now().value()) {
-                _state.lastChargeEndEpoch = storedEpoch;
+            if (storedEpoch != null) {
+                var nowMs = System.getTimer();
+                var elapsedMs = (Time.now().value() - storedEpoch) * 1000;
+                if (elapsedMs > 0 && elapsedMs < 20 * 24 * 3600 * 1000) {
+                    _state.lastChargeEndTs = nowMs - elapsedMs;
+                }
             }
         } catch(e) {}
 
@@ -177,36 +179,26 @@ class DataManager {
             _state.charging = chargingNow;
             if (chargingNow) {
                 _state.chargeStartTs = nowMs;
-                _persistChargeEndEpoch(Time.now().value());
             }
             return;
         }
 
         if (chargingNow == _state.charging) {
-            // While charging, keep the persisted epoch close to "now": if the
-            // unplug transition is never observed (app unloaded/restarted),
-            // the stored value still approximates the charge end on next
-            // launch. Piggybacks on the existing throttled checks, and the
-            // device is on power while these writes happen.
-            if (chargingNow) {
-                _persistChargeEndEpoch(Time.now().value());
-            }
             return;
         }
 
         // transizione
+        var old = _state.charging;
         _state.charging = chargingNow;
 
         if (chargingNow) {
             // entra in charging
             _state.chargeStartTs = nowMs;
-            _persistChargeEndEpoch(Time.now().value());
 
         } else {
             // esce da charging (unplug)
-            var nowEpoch = Time.now().value();
-            _state.lastChargeEndEpoch = nowEpoch;
-            _persistChargeEndEpoch(nowEpoch);
+            _state.lastChargeEndTs = nowMs;
+            Application.Storage.setValue("lastChargeEndEpoch", Time.now().value());
 
             if (_state.chargeStartTs != 0 && nowMs > _state.chargeStartTs) {
                 _state.lastChargeDurMs = nowMs - _state.chargeStartTs;
@@ -216,12 +208,6 @@ class DataManager {
             // forza header refresh immediato
             _state.lastHeaderTs = 0;
         }
-    }
-
-    function _persistChargeEndEpoch(epoch) {
-        try {
-            Application.Storage.setValue("lastChargeEndEpoch", epoch);
-        } catch(e) { }
     }
 
     // ----------------------------
@@ -306,13 +292,8 @@ class DataManager {
 
         var s = "Since charge: --";
 
-        // Elapsed computed in epoch seconds: immune to System.getTimer()
-        // wrap and to 32-bit overflow on long gaps between charges.
-        if (_state.lastChargeEndEpoch != 0) {
-            var elapsedSec = Time.now().value() - _state.lastChargeEndEpoch;
-            if (elapsedSec >= 0) {
-                s = "Since charge: " + _fmtDHFromSec(elapsedSec);
-            }
+        if (_state.lastChargeEndTs != 0 && nowMs > _state.lastChargeEndTs) {
+            s = "Since charge: " + _fmtDH(nowMs - _state.lastChargeEndTs);
         }
 
         if (_state.headerStr != s) {
@@ -400,11 +381,7 @@ class DataManager {
     // ----------------------------
     function _fmtDH(ms) {
         if (ms <= 0) { return "--"; }
-        return _fmtDHFromSec((ms / 1000).toNumber());
-    }
-
-    function _fmtDHFromSec(sec) {
-        if (sec < 0) { return "--"; }
+        var sec = (ms / 1000).toNumber();
         var min = (sec / 60).toNumber();
         var hr  = (min / 60).toNumber();
         var day = (hr / 24).toNumber();
