@@ -7,7 +7,6 @@ using Metrics;
 class DataManager {
 
     const BAT_REFRESH_MS    = 15 * 60 * 1000; // 15 min (sampling batteria + trend)
-    const HEADER_REFRESH_MS = 60 * 60 * 1000; // 60 min (Last charge elapsed)
     const CHG_REFRESH_MS = 5 * 60 * 1000; // 5 min (charging state)
     const DATE_REFRESH_MS = 60 * 60 * 1000; // 1h baseline; midnight window forces extra checks
     // Top2 mode (decidi tu dove settarlo: settings o default nello State)
@@ -15,22 +14,20 @@ class DataManager {
     const TOP2_EFF = 1;
     const TOP2_CHG = 2;
 
+    const HEADER_MOTTO = "less power - more time";
+
     var _state as State;
 
     function initialize(state as State) {
         _state = state;
 
-        // Restore lastChargeEndTs across reloads: stored as epoch (seconds),
-        // converted back to System.getTimer() units on resume.
+        // Header is a static motto: set once, drawn via the initial
+        // dirtyHeader flag, never refreshed (issue #41).
+        _state.headerStr = HEADER_MOTTO;
+
+        // Drop the legacy charge-end key left behind by older versions.
         try {
-            var storedEpoch = Application.Storage.getValue("lastChargeEndEpoch");
-            if (storedEpoch != null) {
-                var nowMs = System.getTimer();
-                var elapsedMs = (Time.now().value() - storedEpoch) * 1000;
-                if (elapsedMs > 0 && elapsedMs < 20 * 24 * 3600 * 1000) {
-                    _state.lastChargeEndTs = nowMs - elapsedMs;
-                }
-            }
+            Application.Storage.deleteValue("lastChargeEndEpoch");
         } catch(e) {}
 
         // Date iniziale (forced: lastDateCheckTs == 0)
@@ -46,10 +43,7 @@ class DataManager {
         // 1) Charging state ogni 5 minuti (low cost)
         refreshChargingIfNeeded(nowMs);
 
-        // 2) Header può aggiornare anche senza battery sample
-        refreshHeaderIfNeeded(nowMs, false);
-
-        // 3) Se top2 è CHG, aggiorna ogni minuto
+        // 2) Se top2 è CHG, aggiorna ogni minuto
         if (_state.charging && _state.topLine2Mode == TOP2_CHG) {
             updateTop2Custom(nowMs);
         }
@@ -57,9 +51,7 @@ class DataManager {
 
 
     function refreshBatteryIfNeeded(nowMs, force) {
-        // anche se non campioniamo batteria, header può aggiornare ogni ora
         if (!force && _state.lastBatteryTs != 0 && (nowMs - _state.lastBatteryTs) < BAT_REFRESH_MS) {
-            refreshHeaderIfNeeded(nowMs, false);
             return;
         }
 
@@ -70,7 +62,6 @@ class DataManager {
         // ----------------------------
         var pct = Metrics.getDeviceBatteryPercent();
         if (pct == null) {
-            refreshHeaderIfNeeded(nowMs, false);
             return;
         }
 
@@ -102,12 +93,7 @@ class DataManager {
         updateBatteryTrend(nowMs, pct);
 
         // ----------------------------
-        // 5) Header: Last charge elapsed (ogni ora, o subito dopo unplug)
-        // ----------------------------
-        refreshHeaderIfNeeded(nowMs, true);
-
-        // ----------------------------
-        // 6) Top2: custom (eff default / chg duration / tte)
+        // 5) Top2: custom (eff default / chg duration / tte)
         // ----------------------------
         updateTop2Custom(nowMs);
     }
@@ -197,16 +183,10 @@ class DataManager {
 
         } else {
             // esce da charging (unplug)
-            _state.lastChargeEndTs = nowMs;
-            Application.Storage.setValue("lastChargeEndEpoch", Time.now().value());
-
             if (_state.chargeStartTs != 0 && nowMs > _state.chargeStartTs) {
                 _state.lastChargeDurMs = nowMs - _state.chargeStartTs;
             }
             _state.chargeStartTs = 0;
-
-            // forza header refresh immediato
-            _state.lastHeaderTs = 0;
         }
     }
 
@@ -278,29 +258,6 @@ class DataManager {
         }
     }
 
-
-    // ----------------------------
-    // Header: Last charge elapsed
-    // ----------------------------
-    function refreshHeaderIfNeeded(nowMs, force) {
-
-        if (!force && _state.lastHeaderTs != 0 && (nowMs - _state.lastHeaderTs) < HEADER_REFRESH_MS) {
-            return;
-        }
-
-        _state.lastHeaderTs = nowMs;
-
-        var s = "Since charge: --";
-
-        if (_state.lastChargeEndTs != 0 && nowMs > _state.lastChargeEndTs) {
-            s = "Since charge: " + _fmtDH(nowMs - _state.lastChargeEndTs);
-        }
-
-        if (_state.headerStr != s) {
-            _state.headerStr = s;
-            _state.dirtyHeader = true;
-        }
-    }
 
     // ----------------------------
     // Top2: custom
