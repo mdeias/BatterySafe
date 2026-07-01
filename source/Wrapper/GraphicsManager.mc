@@ -50,10 +50,10 @@ module GraphicsManager {
         _footerRenderer.draw(dc, state, s);
     }
 
-    function drawAodTime(dc as Graphics.Dc, state as State, shiftX, shiftY) {
+    function drawAodTime(dc as Graphics.Dc, state as State, shiftX, shiftY, bright) {
         if (_topCenterRenderer == null) { init(); }
         var s = getScale(dc);
-        _topCenterRenderer.drawAodTime(dc, state, s, shiftX, shiftY);
+        _topCenterRenderer.drawAodTime(dc, state, s, shiftX, shiftY, bright);
     }
 
     function drawAodDate(dc as Graphics.Dc, state as State, shiftX, shiftY) {
