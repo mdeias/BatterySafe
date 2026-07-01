@@ -146,7 +146,7 @@ class TopCenterRenderer {
     // ----------------------------
     // AOD: SOLO ORA (stessa posizione e dimensione del normale)
     // ----------------------------
-    function drawAodTime(dc as Graphics.Dc, state as State, s, shiftX, shiftY) {
+    function drawAodTime(dc as Graphics.Dc, state as State, s, shiftX, shiftY, bright) {
 
         // assicurati che layout sia pronto (usa lo stesso font/geo)
         if (_lastScale == null || _lastScale != s) {
@@ -154,8 +154,10 @@ class TopCenterRenderer {
             _lastScale = s;
         }
 
-        // ora
-        dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
+        // ora: verde acceso (primary) in extreme power saver da sveglio,
+        // grigio dim nell'AOD vero per risparmiare batteria.
+        var timeColor = bright ? Palette.PRIMARY : Graphics.COLOR_DK_GRAY;
+        dc.setColor(timeColor, Graphics.COLOR_TRANSPARENT);
         dc.drawText(
             _timeX + shiftX,
             _timeY + shiftY,
