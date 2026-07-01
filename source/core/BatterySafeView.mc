@@ -46,18 +46,31 @@ class BatterySafeView extends WatchUi.WatchFace {
     function onUpdate(dc as Dc) as Void {
 
         try {
-            if (_isLowPower) {
+            // Apply settings before branching so that toggling
+            // extremePowerSaver at runtime takes effect immediately.
+            applySettingsIfNeeded();
+
+            // Refresh the cached time string before any draw branch: the
+            // AOD / extreme-power-saver path returns early, so if the time
+            // were only recomputed in the normal path below the clock would
+            // stay frozen in those modes.
+            refreshTimeString();
+
+            if (_isLowPower || Prefs.extremePowerSaver) {
                 _didDrawAod = true;
                 var s = GraphicsManager.getScale(dc);
                 var nowMs = System.getTimer();
                 dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
                 dc.clear();
                 updateAodShift(nowMs, s);
-                GraphicsManager.drawAodTime(dc, _state, _aodShiftX, _aodShiftY);
+                // Bright primary-color time only for extreme power saver
+                // while awake; true AOD (_isLowPower) keeps the dim gray to
+                // save power on the always-on display.
+                var brightTime = !_isLowPower;
+                GraphicsManager.drawAodTime(dc, _state, _aodShiftX, _aodShiftY, brightTime);
                 GraphicsManager.drawAodDate(dc, _state, _aodShiftX, _aodShiftY);
                 return;
             }
-            applySettingsIfNeeded();
             var nowMs = System.getTimer();
             // -----------------------------
             // Refresh dati (scheduler)
@@ -75,26 +88,8 @@ class BatterySafeView extends WatchUi.WatchFace {
             }
 
 
-            // -----------------------------
-            // Time cache (solo se cambia minuto)
-            // -----------------------------
-            var ct = System.getClockTime();
-            var minuteKey = (ct.hour * 60) + ct.min;
-
-            if (minuteKey != _state.lastMinuteKey) {
-                _state.lastMinuteKey = minuteKey;
-
-                    var hh = ct.hour;
-
-                    if (!Prefs.use24h) {
-                        hh = hh % 12;
-                        if (hh == 0) { hh = 12; }
-                    }
-                    
-                    _state.timeStr = hh.format("%02d") + ":" + ct.min.format("%02d");
-
-                _state.dirtyTime = true;
-            }
+            // Time cache already refreshed above (refreshTimeString), before
+            // the AOD / extreme-power-saver branch.
 
             // Se non devo ridisegnare nulla, esco
             if (!_state.needsFullRedraw &&
@@ -204,6 +199,26 @@ class BatterySafeView extends WatchUi.WatchFace {
         dc.clear();
     }
 
+
+    // Recompute the minute-resolution cached time string. Cheap
+    // (System.getClockTime) and safe to call on every update, including the
+    // AOD / extreme-power-saver branch, so the clock never stays frozen.
+    function refreshTimeString() {
+        var ct = System.getClockTime();
+        var minuteKey = (ct.hour * 60) + ct.min;
+        if (minuteKey == _state.lastMinuteKey) { return; }
+
+        _state.lastMinuteKey = minuteKey;
+
+        var hh = ct.hour;
+        if (!Prefs.use24h) {
+            hh = hh % 12;
+            if (hh == 0) { hh = 12; }
+        }
+
+        _state.timeStr = hh.format("%02d") + ":" + ct.min.format("%02d");
+        _state.dirtyTime = true;
+    }
 
     function updateAodShift(nowMs, s) {
 
