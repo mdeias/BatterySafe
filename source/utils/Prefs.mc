@@ -3,7 +3,8 @@ using Toybox.Application;
 module Prefs {
 
     var use24h = true;
-    var top2Mode = 1; 
+    var top2Mode = 1;
+    var extremePowerSaver = false;
 
     function load() {
         var app = Application.getApp();
@@ -22,5 +23,8 @@ module Prefs {
         } else {
             top2Mode = 1;
         }
+
+        var eps = app.getProperty("extremePowerSaver");
+        extremePowerSaver = (eps != null && eps == true);
     }
 }

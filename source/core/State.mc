@@ -40,16 +40,12 @@ class State {
     var lastRatePerHour;   // Float (può essere null)  <-- NECESSARIA
 
     var chargeStartTs;     // ms (quando entra charging=true)
-    var lastChargeEndTs;   // ms (quando esce charging=false)
     var lastChargeDurMs;   // ms (durata ultima sessione di carica)
-
-    // Header refresh throttle
-    var lastHeaderTs;      // ms
 
     // ----------------------------
     // Fixed lines (cache pronta) - MAI null
     // ----------------------------
-    var headerStr;         // "Last: 3h 20m"
+    var headerStr;         // motto statico (set una volta da DataManager)
     var topLine1Str;       // "Δ -1.2%/h"
 
     // ----------------------------
@@ -100,10 +96,8 @@ class State {
         lastRatePerHour   = null;
 
         chargeStartTs     = 0;
-        lastChargeEndTs   = 0;
         lastChargeDurMs   = 0;
 
-        lastHeaderTs      = 0;
         lastChargingCheckTs = 0;
         // fixed lines
         headerStr   = HEADER_FALLBACK;
